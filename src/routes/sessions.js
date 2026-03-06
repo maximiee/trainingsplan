@@ -59,6 +59,16 @@ router.put('/recurrences/:id', requireAuth, requireActive, (req, res) => {
   const id = parseInt(req.params.id);
   const { pitch_id, start_time, end_time, teamIds } = req.body;
 
+  // Trainer dürfen nur Einheiten ihrer eigenen Teams bearbeiten
+  if (req.session.role !== 'admin') {
+    const myTeamIds = (req.session.teams || []).map(t => t.id);
+    const firstSession = db.prepare('SELECT id FROM training_sessions WHERE recurrence_id = ? AND is_exception = 0 LIMIT 1').get(id);
+    const recTeams = firstSession ? db.prepare('SELECT team_id FROM session_teams WHERE session_id = ?').all(firstSession.id).map(r => r.team_id) : [];
+    if (!recTeams.some(tid => myTeamIds.includes(tid))) {
+      return res.status(403).json({ error: 'Keine Berechtigung für diese Einheit' });
+    }
+  }
+
   db.prepare(`
     UPDATE recurrences SET
       pitch_id = COALESCE(?, pitch_id),
@@ -94,6 +104,17 @@ router.put('/recurrences/:id', requireAuth, requireActive, (req, res) => {
 // DELETE /api/sessions/recurrences/:id
 router.delete('/recurrences/:id', requireAuth, requireActive, (req, res) => {
   const id = parseInt(req.params.id);
+
+  // Trainer dürfen nur Einheiten ihrer eigenen Teams löschen
+  if (req.session.role !== 'admin') {
+    const myTeamIds = (req.session.teams || []).map(t => t.id);
+    const firstSession = db.prepare('SELECT id FROM training_sessions WHERE recurrence_id = ? AND is_exception = 0 LIMIT 1').get(id);
+    const recTeams = firstSession ? db.prepare('SELECT team_id FROM session_teams WHERE session_id = ?').all(firstSession.id).map(r => r.team_id) : [];
+    if (!recTeams.some(tid => myTeamIds.includes(tid))) {
+      return res.status(403).json({ error: 'Keine Berechtigung für diese Einheit' });
+    }
+  }
+
   const deleteAll = db.transaction(() => {
     const sessions = db.prepare('SELECT id FROM training_sessions WHERE recurrence_id = ?').all(id);
     const delTeams = db.prepare('DELETE FROM session_teams WHERE session_id = ?');

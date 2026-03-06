@@ -106,18 +106,21 @@ async function renderSessions() {
   const activeSeason = allSeasons.find(s => s.is_active) || allSeasons[0];
   if (!activeSeason) return;
 
-  const recs  = await api.get(`/api/sessions/recurrences?season_id=${activeSeason.id}`);
+  const allRecs  = await api.get(`/api/sessions/recurrences?season_id=${activeSeason.id}`);
   const tbody = document.getElementById('sessions-tbody');
   tbody.innerHTML = '';
 
-  // Alle Einheiten zeigen, eigene Teams hervorheben
   const myTeamIds = (currentUser.teams || []).map(t => t.id);
+  const recs = allRecs.filter(r => r.teams?.some(t => myTeamIds.includes(t.id)));
+
+  if (recs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">Keine Einheiten – bitte zuerst im Profil eine Mannschaft auswählen.</td></tr>';
+    return;
+  }
 
   for (const r of recs) {
-    const teams    = r.teams?.map(t => `<span class="color-dot" style="background:${t.color};margin-right:2px"></span>${t.name}`).join(', ') || '–';
-    const isMyTeam = r.teams?.some(t => myTeamIds.includes(t.id));
-    const tr       = document.createElement('tr');
-    tr.style.opacity = isMyTeam ? '1' : '0.45';
+    const teams = r.teams?.map(t => `<span class="color-dot" style="background:${t.color};margin-right:2px"></span>${t.name}`).join(', ') || '–';
+    const tr    = document.createElement('tr');
     tr.innerHTML = `
       <td>${DAYS[r.weekday]}</td>
       <td>${r.pitch_name}</td>
