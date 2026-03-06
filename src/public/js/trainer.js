@@ -1,7 +1,6 @@
-let currentUser = null;
-let allTeams    = [];
-let allPitches  = [];
-let allSeasons  = [];
+let allTeams   = [];
+let allPitches = [];
+let allSeasons = [];
 
 const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
 
