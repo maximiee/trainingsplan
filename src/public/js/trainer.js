@@ -280,8 +280,7 @@ async function renderMatches() {
       <td>${m.time || '–'}</td>
       <td><span class="color-dot" style="background:${m.team_color}"></span>${m.team_name}</td>
       <td>${m.opponent || '–'}</td>
-      <td>${m.pitch_name || '–'}</td>
-      <td>${m.half_pitch ? '✓' : '–'}</td>
+      <td>${m.pitch_name ? m.pitch_name + (m.half_pitch ? ' <small style="color:var(--text-muted)">(½)</small>' : '') : '–'}</td>
       <td><div class="actions">
         <button class="btn btn-sm btn-secondary" onclick="openEditMatchModal(${m.id})">Bearbeiten</button>
         <button class="btn btn-sm btn-danger" onclick="deleteMatch(${m.id})">Löschen</button>

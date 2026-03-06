@@ -281,6 +281,26 @@ body {
   border-style: dashed;
 }
 
+/* ── Spiel-Block im Grid ── */
+.match-block {
+  position: absolute;
+  left: 1px; right: 1px;
+  border-radius: 4px;
+  padding: 3px 5px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #fff9e6;
+  border: 2px solid #f39c12;
+  color: #7d4e00;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.match-block:hover { filter: brightness(0.92); z-index: 10; }
+.match-block .block-name { font-weight: 700; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.match-block .block-time { font-size: 9px; opacity: 0.8; }
+
 /* ── Spiele-Leiste (unten) ── */
 .matches-bar {
   border-top: 1px solid var(--border);

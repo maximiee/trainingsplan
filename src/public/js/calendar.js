@@ -164,13 +164,13 @@ async function renderWeek() {
 
   const weekMatches = matches.filter(m => m.date >= rangeStart && m.date <= rangeEnd);
 
-  buildCalendarGrid(sessions);
+  buildCalendarGrid(sessions, weekMatches);
   renderMatchesBar(weekMatches);
   renderLegend(sessions);
 }
 
 // ── Kalender-Grid aufbauen ────────────────────────────────────
-function buildCalendarGrid(sessions) {
+function buildCalendarGrid(sessions, matches = []) {
   const container = document.getElementById('calendar-container');
   if (!container) return;
   container.innerHTML = '';
@@ -293,6 +293,13 @@ function buildCalendarGrid(sessions) {
         if (block) col.appendChild(block);
       }
 
+      // Spiel-Blöcke für diesen Tag + Platz
+      const colMatches = matches.filter(m => m.date === iso && m.pitch_id === pitch.id && m.time);
+      for (const m of colMatches) {
+        const block = createMatchBlock(m, cfg.startHour);
+        if (block) col.appendChild(block);
+      }
+
       colsGrid.appendChild(col);
     }
   }
@@ -353,6 +360,47 @@ function createBlock(session, colSessions, startHour) {
   });
 
   return block;
+}
+
+// ── Spiel-Block erstellen ─────────────────────────────────────
+function createMatchBlock(match, startHour) {
+  const startSlot = timeToSlot(match.time, startHour);
+  if (startSlot < 0 || startSlot >= totalSlots()) return null;
+  const spans = 3; // 90 Minuten
+
+  const block = document.createElement('div');
+  block.className = 'match-block';
+  block.style.top    = `${startSlot * SLOT_HEIGHT + 1}px`;
+  block.style.height = `${Math.min(spans, totalSlots() - startSlot) * SLOT_HEIGHT - 3}px`;
+  block.innerHTML = `
+    <span class="block-name">🏆 ${match.team_name} vs. ${match.opponent || '?'}</span>
+    <span class="block-time">${match.time} Uhr${match.half_pitch ? ' · ½ Platz' : ''}</span>
+  `;
+  block.addEventListener('click', e => { e.stopPropagation(); showMatchPopup(match, e); });
+  return block;
+}
+
+// ── Match-Popup ───────────────────────────────────────────────
+function showMatchPopup(match, event) {
+  document.querySelector('.session-popup')?.remove();
+
+  const popup = document.createElement('div');
+  popup.className = 'session-popup';
+  popup.innerHTML = `
+    <button class="btn-close-popup">×</button>
+    <h4>🏆 ${match.team_name} vs. ${match.opponent || '?'}</h4>
+    <div class="popup-row"><span class="popup-label">Datum</span><span>${isoToDE(match.date)}</span></div>
+    <div class="popup-row"><span class="popup-label">Anstoß</span><span>${match.time ? match.time + ' Uhr' : '–'}</span></div>
+    <div class="popup-row"><span class="popup-label">Platz</span><span>${match.pitch_name || '–'}${match.half_pitch ? ' (halber Platz)' : ''}</span></div>
+  `;
+  popup.querySelector('.btn-close-popup').addEventListener('click', () => popup.remove());
+  document.body.appendChild(popup);
+
+  const x = Math.min(event.clientX + 10, window.innerWidth  - 290);
+  const y = Math.min(event.clientY + 10, window.innerHeight - 160);
+  popup.style.left = `${x}px`;
+  popup.style.top  = `${y}px`;
+  setTimeout(() => document.addEventListener('click', () => popup.remove(), { once: true }), 50);
 }
 
 // ── Session-Popup ─────────────────────────────────────────────
