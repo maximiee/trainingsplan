@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wochenübersicht – Trainingsplan</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/calendar.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" class="brand">⚽ Trainingsplan</a>
+  <nav>
+    <a href="/" class="active">Wochenplan</a>
+    <a href="/admin.html" id="nav-admin" style="display:none">Admin</a>
+  </nav>
+  <span class="user-info" id="nav-user"></span>
+  <button class="btn btn-sm btn-secondary" id="btn-profile" style="margin-right:4px">👤 Profil</button>
+  <button class="btn-logout" id="btn-logout">Abmelden</button>
+</nav>
+
+<div class="cal-page">
+
+  <!-- Steuerleiste -->
+  <div class="cal-controls">
+    <!-- Modus-Umschalter -->
+    <div class="view-toggle">
+      <button class="view-toggle-btn active" id="btn-mode-week">Mo – Fr</button>
+      <button class="view-toggle-btn" id="btn-mode-weekend">Sa – So</button>
+    </div>
+
+    <div class="cal-controls-divider"></div>
+
+    <button class="btn btn-secondary btn-sm" id="btn-prev">‹</button>
+    <button class="btn btn-secondary btn-sm" id="btn-today">Heute</button>
+    <span class="cal-week-label" id="week-label">…</span>
+    <button class="btn btn-secondary btn-sm" id="btn-next">›</button>
+
+    <select id="season-select" title="Saison wählen"></select>
+
+    <button class="btn btn-sm btn-secondary" id="btn-export-pdf" title="PDF">📄 PDF</button>
+    <button class="btn btn-sm btn-secondary" id="btn-export-excel-week" title="Excel Woche">📊 Excel</button>
+    <button class="btn btn-sm btn-secondary" id="btn-export-excel-season" title="Excel Saison">📊 Saison</button>
+    <button class="btn btn-sm btn-primary" id="btn-new-session" style="display:none">+ Einheit</button>
+  </div>
+
+  <!-- Kalender-Grid (wird per JS aufgebaut) -->
+  <div class="cal-grid-outer">
+    <div id="calendar-container" style="display:flex;flex-direction:column;height:100%">
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-muted)">
+        Kalender wird geladen…
+      </div>
+    </div>
+  </div>
+
+  <!-- Spiele diese Woche -->
+  <div class="matches-bar" id="matches-bar" style="display:none">
+    <span class="matches-bar-title">🏆 Spiele:</span>
+    <div id="matches-list" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+  </div>
+
+  <!-- Legende -->
+  <div class="legend-bar" id="legend"></div>
+
+</div>
+
+<!-- Einheit anlegen/bearbeiten Modal -->
+<div class="modal-overlay hidden" id="cal-session-modal">
+  <div class="modal" style="max-width:520px">
+    <h2 class="modal-title" id="cal-session-modal-title">Neue Einheit</h2>
+    <form id="cal-session-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Platz *</label>
+          <select name="pitch_id" class="form-control"></select>
+        </div>
+        <div class="form-group">
+          <label>Wochentag *</label>
+          <select name="weekday" class="form-control">
+            <option value="0">Montag</option>
+            <option value="1">Dienstag</option>
+            <option value="2">Mittwoch</option>
+            <option value="3">Donnerstag</option>
+            <option value="4">Freitag</option>
+            <option value="5">Samstag</option>
+            <option value="6">Sonntag</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Startzeit *</label>
+          <select name="start_time" class="form-control"></select>
+        </div>
+        <div class="form-group">
+          <label>Endzeit *</label>
+          <select name="end_time" class="form-control"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Teams *</label>
+        <div class="checkbox-group" id="cal-teams-checks"></div>
+      </div>
+      <div class="form-group">
+        <label>Wiederholen bis</label>
+        <input type="date" name="valid_until" class="form-control">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="cal-session-cancel">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Profil Modal -->
+<div class="modal-overlay hidden" id="profile-modal">
+  <div class="modal" style="max-width:440px">
+    <h2 class="modal-title">Mein Profil</h2>
+    <div style="margin-bottom:16px">
+      <h3 style="font-size:14px;margin-bottom:8px;color:var(--text-muted)">Meine Teams</h3>
+      <div class="checkbox-group" id="profile-teams-checks"></div>
+      <button class="btn btn-primary btn-sm" id="btn-save-teams" style="margin-top:10px">Teams speichern</button>
+      <div id="profile-teams-msg" style="font-size:12px;margin-top:6px"></div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+    <div>
+      <h3 style="font-size:14px;margin-bottom:8px;color:var(--text-muted)">Passwort ändern</h3>
+      <form id="profile-pw-form">
+        <div class="form-group">
+          <label>Aktuelles Passwort</label>
+          <input type="password" name="currentPassword" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Neues Passwort</label>
+          <input type="password" name="newPassword" class="form-control" required minlength="8">
+        </div>
+        <button type="submit" class="btn btn-secondary btn-sm">Passwort ändern</button>
+        <div id="profile-pw-msg" style="font-size:12px;margin-top:6px"></div>
+      </form>
+    </div>
+    <div class="modal-footer" style="margin-top:16px">
+      <button type="button" class="btn btn-secondary" id="profile-modal-close">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/calendar.js"></script>
+</body>
+</html>

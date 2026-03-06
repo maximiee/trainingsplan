@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin – Trainingsplan</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" class="brand">⚽ Trainingsplan</a>
+  <nav>
+    <a href="/">Wochenplan</a>
+    <a href="/admin.html" class="active">Admin</a>
+  </nav>
+  <span class="user-info" id="nav-user"></span>
+  <button class="btn-logout" id="btn-logout">Abmelden</button>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title">Administration</h1>
+  </div>
+
+  <!-- Tabs -->
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-tab="users">👥 Benutzer</button>
+    <button class="admin-tab" data-tab="teams">🎽 Teams</button>
+    <button class="admin-tab" data-tab="pitches">🏟️ Plätze</button>
+    <button class="admin-tab" data-tab="seasons">📅 Saisons</button>
+    <button class="admin-tab" data-tab="sessions">🏃 Einheiten</button>
+    <button class="admin-tab" data-tab="matches">🏆 Spieltermine</button>
+    <button class="admin-tab" data-tab="profile">👤 Profil</button>
+  </div>
+
+  <!-- ===== BENUTZER ===== -->
+  <div class="tab-content" data-tab="users">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Benutzerverwaltung</h2>
+        <button class="btn btn-primary" onclick="openNewUser()">+ Neuer Benutzer</button>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Name</th><th>Rolle</th><th>Teams</th><th>Status</th><th>Aktionen</th>
+        </tr></thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== TEAMS ===== -->
+  <div class="tab-content hidden" data-tab="teams">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Teamverwaltung</h2>
+        <button class="btn btn-primary" onclick="openNewTeam()">+ Neues Team</button>
+      </div>
+      <table>
+        <thead><tr>
+          <th>Farbe</th><th>Name</th><th>Altersklasse</th><th>fussball.de ID</th><th>Status</th><th>Aktionen</th>
+        </tr></thead>
+        <tbody id="teams-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== PLÄTZE ===== -->
+  <div class="tab-content hidden" data-tab="pitches">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Platzverwaltung</h2>
+        <button class="btn btn-primary" onclick="openNewPitch()">+ Neuer Platz</button>
+      </div>
+      <table>
+        <thead><tr><th>Name</th><th>Belag</th><th>Aktionen</th></tr></thead>
+        <tbody id="pitches-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== SAISONS ===== -->
+  <div class="tab-content hidden" data-tab="seasons">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Saisonverwaltung</h2>
+        <button class="btn btn-primary" onclick="openNewSeason()">+ Neue Saison</button>
+      </div>
+      <div id="seasons-list"></div>
+    </div>
+  </div>
+
+  <!-- ===== TRAININGSEINHEITEN ===== -->
+  <div class="tab-content hidden" data-tab="sessions" id="sessions-container">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Trainingseinheiten <small style="font-weight:400;color:var(--text-muted)">(aktive Saison)</small></h2>
+        <button class="btn btn-primary" onclick="openNewSession()">+ Neue Einheit</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>Wochentag</th><th>Platz</th><th>Zeit</th><th>Teams</th><th>Aktionen</th>
+          </tr></thead>
+          <tbody id="sessions-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SPIELTERMINE ===== -->
+  <div class="tab-content hidden" data-tab="matches">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Spieltermine <small style="font-weight:400;color:var(--text-muted)">(aktive Saison)</small></h2>
+        <button class="btn btn-primary" onclick="openNewMatch()">+ Neuer Spieltermin</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>Datum</th><th>Uhrzeit</th><th>Team</th><th>Gegner</th><th>Typ</th><th>Spielort</th><th>Aktionen</th>
+          </tr></thead>
+          <tbody id="matches-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PROFIL ===== -->
+  <div class="tab-content hidden" data-tab="profile">
+    <div class="card" style="max-width:480px">
+      <div class="card-header">
+        <h2 class="card-title">Passwort ändern</h2>
+      </div>
+      <form id="profile-form">
+        <div class="form-group">
+          <label>Aktuelles Passwort</label>
+          <input type="password" name="currentPassword" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Neues Passwort <small>(mind. 8 Zeichen)</small></label>
+          <input type="password" name="newPassword" class="form-control" required minlength="8">
+        </div>
+        <div class="form-group">
+          <label>Neues Passwort bestätigen</label>
+          <input type="password" name="confirmPassword" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Passwort ändern</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Benutzer-Modal -->
+<div class="modal-overlay hidden" id="user-modal">
+  <div class="modal">
+    <h2 class="modal-title" id="user-modal-title">Benutzer</h2>
+    <form id="user-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" name="name" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>E-Mail *</label>
+          <input type="email" name="email" class="form-control" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Rolle *</label>
+          <select name="role" class="form-control">
+            <option value="trainer">Trainer</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <div class="form-group password-field">
+          <label>Passwort * <small>(mind. 8 Zeichen)</small></label>
+          <input type="password" name="password" class="form-control" minlength="8">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Teams</label>
+        <div class="checkbox-group" id="user-teams-checks"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('user-modal').classList.add('hidden')">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Team-Modal -->
+<div class="modal-overlay hidden" id="team-modal">
+  <div class="modal">
+    <h2 class="modal-title" id="team-modal-title">Team</h2>
+    <form id="team-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" name="name" class="form-control" required placeholder="z.B. U17 Männlich">
+        </div>
+        <div class="form-group">
+          <label>Altersklasse</label>
+          <input type="text" name="age_group" class="form-control" placeholder="z.B. U17">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Farbe *</label>
+          <input type="color" name="color" class="form-control" value="#3498db" style="height:42px;padding:4px">
+        </div>
+        <div class="form-group">
+          <label>fussball.de ID <small>(optional)</small></label>
+          <input type="text" name="fussball_de_id" class="form-control" placeholder="Mannschafts-ID">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('team-modal').classList.add('hidden')">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Platz-Modal -->
+<div class="modal-overlay hidden" id="pitch-modal">
+  <div class="modal">
+    <h2 class="modal-title" id="pitch-modal-title">Platz</h2>
+    <form id="pitch-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" name="name" class="form-control" required placeholder="z.B. A-Platz">
+        </div>
+        <div class="form-group">
+          <label>Belag</label>
+          <select name="surface" class="form-control">
+            <option value="Rasen">Rasen</option>
+            <option value="Kunstrasen">Kunstrasen</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('pitch-modal').classList.add('hidden')">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Saison-Modal -->
+<div class="modal-overlay hidden" id="season-modal">
+  <div class="modal">
+    <h2 class="modal-title" id="season-modal-title">Saison</h2>
+    <form id="season-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" name="name" class="form-control" required placeholder="z.B. Sommer 2026">
+        </div>
+        <div class="form-group">
+          <label>Typ *</label>
+          <select name="type" class="form-control">
+            <option value="sommer">Sommer</option>
+            <option value="winter">Winter</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Startdatum *</label>
+          <input type="date" name="start_date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Enddatum *</label>
+          <input type="date" name="end_date" class="form-control" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('season-modal').classList.add('hidden')">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Vorlage-Import-Modal -->
+<div class="modal-overlay hidden" id="copy-modal">
+  <div class="modal">
+    <h2 class="modal-title">Trainingszeiten importieren</h2>
+    <p style="color:var(--text-muted);margin-bottom:16px">Wiederkehrende Einheiten aus einer anderen Saison als Vorlage übernehmen.</p>
+    <form id="copy-form">
+      <div class="form-group">
+        <label>Quell-Saison</label>
+        <select id="copy-source-select" class="form-control"></select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('copy-modal').classList.add('hidden')">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Importieren</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Trainingseinheit-Modal -->
+<div class="modal-overlay hidden" id="session-modal">
+  <div class="modal" style="max-width:640px">
+    <h2 class="modal-title" id="session-modal-title">Trainingseinheit</h2>
+    <form id="session-form">
+      <div class="form-row" id="session-season-row">
+        <div class="form-group">
+          <label>Saison *</label>
+          <select name="season_id" class="form-control"></select>
+        </div>
+        <div class="form-group">
+          <label>Typ *</label>
+          <select name="type" class="form-control">
+            <option value="training">Training</option>
+            <option value="spiel">Spiel</option>
+            <option value="turnier">Turnier</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Platz *</label>
+          <select name="pitch_id" class="form-control"></select>
+        </div>
+        <div class="form-group" id="session-date-group">
+          <label>Datum *</label>
+          <input type="date" name="date" class="form-control">
+        </div>
+        <div class="form-group" id="session-weekday-group" style="display:none">
+          <label>Wochentag</label>
+          <select name="weekday" class="form-control">
+            <option value="0">Montag</option>
+            <option value="1">Dienstag</option>
+            <option value="2">Mittwoch</option>
+            <option value="3">Donnerstag</option>
+            <option value="4">Freitag</option>
+            <option value="5">Samstag</option>
+            <option value="6">Sonntag</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Startzeit *</label>
+          <select name="start_time" class="form-control"></select>
+        </div>
+        <div class="form-group">
+          <label>Endzeit *</label>
+          <select name="end_time" class="form-control"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Teams * <small>(Mehrfachauswahl für geteilten Platz)</small></label>
+        <div class="checkbox-group" id="session-teams-checks"></div>
+      </div>
+      <div class="form-group" id="session-note-group">
+        <label>Notiz</label>
+        <input type="text" name="note" class="form-control" placeholder="Optional">
+      </div>
+      <div class="form-group" id="session-recurring-group">
+        <label class="checkbox-item" style="border:none;padding:0">
+          <input type="checkbox" name="recurring">
+          <span>Wiederkehrend (wöchentlich)</span>
+        </label>
+      </div>
+      <div class="recurring-fields" id="session-recurring-fields" style="display:none">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Wochentag</label>
+            <select name="weekday_new" class="form-control">
+              <option value="0">Montag</option>
+              <option value="1">Dienstag</option>
+              <option value="2">Mittwoch</option>
+              <option value="3">Donnerstag</option>
+              <option value="4">Freitag</option>
+              <option value="5">Samstag</option>
+              <option value="6">Sonntag</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Wiederholen bis</label>
+            <input type="date" name="valid_until" class="form-control">
+          </div>
+        </div>
+      </div>
+      <div class="collision-warning" id="collision-warning"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('session-modal').classList.add('hidden')">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Spieltermin-Modal -->
+<div class="modal-overlay hidden" id="match-modal">
+  <div class="modal">
+    <h2 class="modal-title" id="match-modal-title">Spieltermin</h2>
+    <form id="match-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Team *</label>
+          <select name="team_id" class="form-control"></select>
+        </div>
+        <div class="form-group">
+          <label>Datum *</label>
+          <input type="date" name="date" class="form-control" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Anstoßzeit</label>
+          <input type="time" name="time" class="form-control" placeholder="15:00">
+        </div>
+        <div class="form-group">
+          <label>Heimspiel / Auswärts</label>
+          <select name="location" class="form-control">
+            <option value="heim">Heimspiel</option>
+            <option value="auswaerts">Auswärtsspiel</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Gegner</label>
+          <input type="text" name="opponent" class="form-control" placeholder="z.B. FC Beispiel">
+        </div>
+        <div class="form-group">
+          <label>Spielort <small>(bei Auswärts)</small></label>
+          <input type="text" name="venue" class="form-control" placeholder="z.B. Sportplatz Musterstadt">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('match-modal').classList.add('hidden')">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/admin.js"></script>
+</body>
+</html>

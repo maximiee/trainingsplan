@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login – Trainingsplan</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>⚽ Trainingsplan</h1>
+      <p>Trainingszeitenverwaltung</p>
+    </div>
+
+    <div id="alert-container"></div>
+
+    <form id="login-form">
+      <div class="form-group">
+        <label>E-Mail-Adresse</label>
+        <input type="email" name="email" class="form-control" placeholder="admin@verein.de" required autofocus>
+      </div>
+      <div class="form-group">
+        <label>Passwort</label>
+        <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px">
+        Anmelden
+      </button>
+      <p style="text-align:center;margin-top:14px;font-size:13px;color:var(--text-muted)">
+        Noch kein Account?
+        <a href="#" id="link-show-register" style="color:var(--accent)">Registrieren</a>
+      </p>
+    </form>
+
+    <form id="register-form" style="display:none">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" name="name" class="form-control" placeholder="Max Mustermann" required>
+      </div>
+      <div class="form-group">
+        <label>E-Mail-Adresse</label>
+        <input type="email" name="email" class="form-control" placeholder="trainer@verein.de" required>
+      </div>
+      <div class="form-group">
+        <label>Passwort <small style="color:var(--text-muted)">(mind. 8 Zeichen)</small></label>
+        <input type="password" name="password" class="form-control" placeholder="••••••••" required minlength="8">
+      </div>
+      <div class="form-group">
+        <label>Meine Mannschaft(en)</label>
+        <div id="register-teams" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+          <span style="color:var(--text-muted);font-size:13px">Lädt…</span>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px">
+        Registrieren
+      </button>
+      <p style="text-align:center;margin-top:14px;font-size:13px;color:var(--text-muted)">
+        Bereits registriert?
+        <a href="#" id="link-show-login" style="color:var(--accent)">Anmelden</a>
+      </p>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Falls bereits eingeloggt, weiterleiten
+  fetch('/api/auth/me', { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+    .then(r => { if (r.ok) window.location.href = '/'; })
+    .catch(() => {});
+
+  // Teams für Registrierung laden
+  fetch('/api/teams/public')
+    .then(r => r.json())
+    .then(teams => {
+      const box = document.getElementById('register-teams');
+      if (!teams.length) { box.innerHTML = '<span style="color:var(--text-muted);font-size:13px">Keine Teams gefunden</span>'; return; }
+      box.innerHTML = teams.map(t => `
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;padding:3px 8px;border:1px solid #dde1e7;border-radius:6px;background:#f8f9fa">
+          <input type="checkbox" name="registerTeam" value="${t.id}">
+          <span style="width:10px;height:10px;border-radius:50%;background:${t.color};display:inline-block;flex-shrink:0"></span>
+          ${t.name}
+        </label>`).join('');
+    })
+    .catch(() => {});
+
+  // Login/Register umschalten
+  document.getElementById('link-show-register').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('register-form').style.display = '';
+    document.getElementById('alert-container').innerHTML = '';
+  });
+  document.getElementById('link-show-login').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('register-form').style.display = 'none';
+    document.getElementById('login-form').style.display = '';
+    document.getElementById('alert-container').innerHTML = '';
+  });
+
+  document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const btn = form.querySelector('button[type=submit]');
+    btn.disabled = true;
+    btn.textContent = 'Registrieren…';
+    document.getElementById('alert-container').innerHTML = '';
+
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+          name:     form.querySelector('[name=name]').value,
+          email:    form.querySelector('[name=email]').value,
+          password: form.querySelector('[name=password]').value,
+          teamIds:  [...form.querySelectorAll('[name=registerTeam]:checked')].map(el => parseInt(el.value))
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const div = document.createElement('div');
+        div.className = 'alert alert-error';
+        div.textContent = data.error || 'Registrierung fehlgeschlagen';
+        document.getElementById('alert-container').appendChild(div);
+        btn.disabled = false;
+        btn.textContent = 'Registrieren';
+        return;
+      }
+      window.location.href = '/';
+    } catch {
+      const div = document.createElement('div');
+      div.className = 'alert alert-error';
+      div.textContent = 'Verbindungsfehler';
+      document.getElementById('alert-container').appendChild(div);
+      btn.disabled = false;
+      btn.textContent = 'Registrieren';
+    }
+  });
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const email = form.querySelector('[name=email]').value;
+    const password = form.querySelector('[name=password]').value;
+    const btn = form.querySelector('button[type=submit]');
+    btn.disabled = true;
+    btn.textContent = 'Anmelden…';
+
+    const alertContainer = document.getElementById('alert-container');
+    alertContainer.innerHTML = '';
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        const div = document.createElement('div');
+        div.className = 'alert alert-error';
+        div.textContent = data.error || 'Anmeldung fehlgeschlagen';
+        alertContainer.appendChild(div);
+        btn.disabled = false;
+        btn.textContent = 'Anmelden';
+        return;
+      }
+
+      window.location.href = data.role === 'admin' ? '/' : '/';
+    } catch (err) {
+      const div = document.createElement('div');
+      div.className = 'alert alert-error';
+      div.textContent = 'Verbindungsfehler';
+      alertContainer.appendChild(div);
+      btn.disabled = false;
+      btn.textContent = 'Anmelden';
+    }
+  });
+</script>
+</body>
+</html>
