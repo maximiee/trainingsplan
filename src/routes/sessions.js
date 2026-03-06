@@ -55,7 +55,7 @@ router.get('/recurrences', requireAuth, (req, res) => {
 });
 
 // PUT /api/sessions/recurrences/:id
-router.put('/recurrences/:id', requireAuth, requireActive, requireAdmin, (req, res) => {
+router.put('/recurrences/:id', requireAuth, requireActive, (req, res) => {
   const id = parseInt(req.params.id);
   const { pitch_id, start_time, end_time, teamIds } = req.body;
 
@@ -92,7 +92,7 @@ router.put('/recurrences/:id', requireAuth, requireActive, requireAdmin, (req, r
 });
 
 // DELETE /api/sessions/recurrences/:id
-router.delete('/recurrences/:id', requireAuth, requireActive, requireAdmin, (req, res) => {
+router.delete('/recurrences/:id', requireAuth, requireActive, (req, res) => {
   const id = parseInt(req.params.id);
   const deleteAll = db.transaction(() => {
     const sessions = db.prepare('SELECT id FROM training_sessions WHERE recurrence_id = ?').all(id);
