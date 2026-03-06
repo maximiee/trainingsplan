@@ -60,6 +60,7 @@ app.use('/api/seasons', require('./routes/seasons'));
 app.use('/api/sessions', require('./routes/sessions'));
 app.use('/api/matches', require('./routes/matches'));
 app.use('/api/export', require('./routes/export'));
+app.use('/api/import', require('./routes/import'));
 
 // Logging-Middleware für Änderungen
 app.use((req, res, next) => {

@@ -721,4 +721,25 @@ function showAlert(container, msg, type = 'error') {
   setTimeout(() => div.remove(), 5000);
 }
 
+// --- Import ---
+document.getElementById('btn-run-import')?.addEventListener('click', async () => {
+  const btn = document.getElementById('btn-run-import');
+  const result = document.getElementById('import-result');
+  if (!confirm('Grunddaten wirklich importieren? Bitte nur einmalig ausführen.')) return;
+  btn.disabled = true;
+  btn.textContent = 'Importiere…';
+  result.textContent = '';
+  try {
+    const res = await api.post('/api/import', {});
+    result.style.color = 'var(--success)';
+    result.textContent = `✓ Fertig: ${res.recCount} Einheiten-Muster und ${res.sessionCount} Termine importiert.`;
+    await renderSessions();
+  } catch (err) {
+    result.style.color = 'var(--danger)';
+    result.textContent = err.message;
+    btn.disabled = false;
+    btn.textContent = 'Mannschaften & Einheiten importieren';
+  }
+});
+
 document.addEventListener('DOMContentLoaded', adminInit);

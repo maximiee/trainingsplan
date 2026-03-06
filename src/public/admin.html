@@ -33,6 +33,7 @@
     <button class="admin-tab" data-tab="sessions">🏃 Einheiten</button>
     <button class="admin-tab" data-tab="matches">🏆 Spieltermine</button>
     <button class="admin-tab" data-tab="profile">👤 Profil</button>
+    <button class="admin-tab" data-tab="import">📥 Import</button>
   </div>
 
   <!-- ===== BENUTZER ===== -->
@@ -89,6 +90,23 @@
         <button class="btn btn-primary" onclick="openNewSeason()">+ Neue Saison</button>
       </div>
       <div id="seasons-list"></div>
+    </div>
+  </div>
+
+  <!-- ===== GRUNDDATEN-IMPORT ===== -->
+  <div class="tab-content hidden" data-tab="import">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Grunddaten importieren</h2>
+      </div>
+      <div style="padding:16px;max-width:500px">
+        <p style="font-size:14px;color:var(--text-muted);margin-bottom:16px">
+          Importiert alle 10 Mannschaften und den kompletten Trainingsplan (18 Einheiten) in die aktive Saison.
+          Bitte nur einmalig ausführen.
+        </p>
+        <button class="btn btn-primary" id="btn-run-import">Mannschaften &amp; Einheiten importieren</button>
+        <div id="import-result" style="margin-top:12px;font-size:13px"></div>
+      </div>
     </div>
   </div>
 
