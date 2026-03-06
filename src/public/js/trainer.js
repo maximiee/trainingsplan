@@ -52,27 +52,25 @@ function setupProfileForm() {
   form.querySelector('[name=name]').value  = currentUser.name;
   form.querySelector('[name=email]').value = currentUser.email || '';
 
-  // Teams-Checkboxen
+  // Teams nur anzeigen (nicht änderbar)
   const box = document.getElementById('profile-teams');
-  box.innerHTML = allTeams.map(t => `
-    <label class="checkbox-item">
-      <input type="checkbox" name="teamId" value="${t.id}" ${currentUser.teams?.some(ut => ut.id === t.id) ? 'checked' : ''}>
-      <span class="color-dot" style="background:${t.color}"></span>${t.name}
-    </label>`).join('');
+  box.innerHTML = (currentUser.teams || []).length
+    ? currentUser.teams.map(t => `
+        <span style="display:flex;align-items:center;gap:5px;font-size:13px;padding:3px 8px;border:1px solid #dde1e7;border-radius:6px;background:#f8f9fa">
+          <span style="width:10px;height:10px;border-radius:50%;background:${t.color};display:inline-block"></span>${t.name}
+        </span>`).join('')
+    : '<span style="color:var(--text-muted);font-size:13px">Keine Mannschaft zugeordnet</span>';
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('profile-msg');
-    const teamIds = [...form.querySelectorAll('[name=teamId]:checked')].map(el => parseInt(el.value));
     try {
       await api.put('/api/users/me', {
         name:  form.querySelector('[name=name]').value,
         email: form.querySelector('[name=email]').value
       });
-      await api.put('/api/users/me/teams', { teamIds });
-      currentUser.teams = allTeams.filter(t => teamIds.includes(t.id));
-      msg.style.color   = 'var(--success)';
-      msg.textContent   = '✓ Profil gespeichert';
+      msg.style.color = 'var(--success)';
+      msg.textContent = '✓ Profil gespeichert';
       document.getElementById('page-title').textContent = `Mein Bereich – ${form.querySelector('[name=name]').value}`;
     } catch (err) {
       msg.style.color = 'var(--danger)';

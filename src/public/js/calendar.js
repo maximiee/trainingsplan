@@ -559,28 +559,17 @@ async function openProfileModal() {
   const modal = document.getElementById('profile-modal');
   if (!modal) return;
 
-  // Teams-Checkboxen befüllen
+  // Teams nur anzeigen
   const teamBox = document.getElementById('profile-teams-checks');
-  const allTeams = await api.get('/api/teams');
-  teamBox.innerHTML = allTeams.filter(t => t.is_active).map(t => `
-    <label class="checkbox-item">
-      <input type="checkbox" name="profileTeam" value="${t.id}" ${userTeamIds.includes(t.id) ? 'checked' : ''}>
-      <span class="color-dot" style="background:${t.color}"></span>${t.name}
-    </label>`).join('');
-
-  document.getElementById('btn-save-teams').onclick = async () => {
-    const teamIds = [...modal.querySelectorAll('[name=profileTeam]:checked')].map(el => parseInt(el.value));
-    try {
-      const res = await api.put('/api/users/me/teams', { teamIds });
-      userTeamIds = res.teams.map(t => t.id);
-      document.getElementById('profile-teams-msg').textContent = '✓ Gespeichert';
-      document.getElementById('profile-teams-msg').style.color = 'var(--success)';
-      renderWeek();
-    } catch (err) {
-      document.getElementById('profile-teams-msg').textContent = err.message;
-      document.getElementById('profile-teams-msg').style.color = 'var(--danger)';
-    }
-  };
+  const myTeams = (await api.get('/api/auth/me')).teams || [];
+  teamBox.innerHTML = myTeams.length
+    ? myTeams.map(t => `
+        <span style="display:flex;align-items:center;gap:5px;font-size:13px;padding:3px 8px;border:1px solid #dde1e7;border-radius:6px;background:#f8f9fa">
+          <span style="width:10px;height:10px;border-radius:50%;background:${t.color};display:inline-block"></span>${t.name}
+        </span>`).join('')
+    : '<span style="color:var(--text-muted);font-size:13px">Keine Mannschaft zugeordnet</span>';
+  document.getElementById('btn-save-teams').style.display = 'none';
+  document.getElementById('profile-teams-msg').textContent = 'Mannschaften können nur vom Admin geändert werden.';
 
   // Passwort-Formular
   const pwForm = document.getElementById('profile-pw-form');

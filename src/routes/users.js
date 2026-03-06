@@ -18,8 +18,8 @@ router.put('/me', requireAuth, (req, res) => {
   res.json({ ok: true });
 });
 
-// PUT /api/users/me/teams – eigene Teamzuordnung ändern
-router.put('/me/teams', requireAuth, (req, res) => {
+// PUT /api/users/me/teams – Teamzuordnung ändern (nur Admin)
+router.put('/me/teams', requireAuth, requireAdmin, (req, res) => {
   const { teamIds } = req.body;
   const userId = req.session.userId;
 
