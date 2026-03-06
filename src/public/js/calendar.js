@@ -69,6 +69,8 @@ async function init() {
 function updateNavUser(user) {
   const el = document.getElementById('nav-user');
   if (el) el.textContent = user.name;
+  const trainerLink = document.getElementById('nav-trainer');
+  if (trainerLink) trainerLink.style.display = user.role === 'trainer' ? '' : 'none';
   const adminLink = document.getElementById('nav-admin');
   if (adminLink) adminLink.style.display = user.role === 'admin' ? '' : 'none';
   const newBtn = document.getElementById('btn-new-session');

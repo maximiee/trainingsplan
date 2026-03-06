@@ -5,6 +5,19 @@ const { requireAuth } = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/roleCheck');
 const router = express.Router();
 
+// PUT /api/users/me – eigenes Profil aktualisieren (Name, Email)
+router.put('/me', requireAuth, (req, res) => {
+  const { name, email } = req.body;
+  if (!name || !email) return res.status(400).json({ error: 'Name und E-Mail erforderlich' });
+
+  const conflict = db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(email, req.session.userId);
+  if (conflict) return res.status(409).json({ error: 'E-Mail bereits vergeben' });
+
+  db.prepare('UPDATE users SET name = ?, email = ? WHERE id = ?').run(name, email, req.session.userId);
+  req.session.userName = name;
+  res.json({ ok: true });
+});
+
 // PUT /api/users/me/teams – eigene Teamzuordnung ändern
 router.put('/me/teams', requireAuth, (req, res) => {
   const { teamIds } = req.body;

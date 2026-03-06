@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trainer – Trainingsplan</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" class="brand">⚽ Trainingsplan</a>
+  <nav>
+    <a href="/">Wochenplan</a>
+    <a href="/trainer.html" class="active">Mein Bereich</a>
+  </nav>
+  <span class="user-info" id="nav-user"></span>
+  <button class="btn-logout" id="btn-logout">Abmelden</button>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <h1 class="page-title" id="page-title">Mein Bereich</h1>
+  </div>
+
+  <div class="admin-tabs">
+    <button class="admin-tab active" data-tab="profile">👤 Mein Profil</button>
+    <button class="admin-tab" data-tab="sessions">🏃 Meine Einheiten</button>
+  </div>
+
+  <!-- ===== PROFIL ===== -->
+  <div class="tab-content" data-tab="profile">
+    <div class="card" style="max-width:500px">
+      <div class="card-header">
+        <h2 class="card-title">Profildaten</h2>
+      </div>
+      <form id="profile-form" style="padding:16px">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" name="name" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>E-Mail</label>
+          <input type="email" name="email" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Meine Mannschaft(en)</label>
+          <div class="checkbox-group" id="profile-teams"></div>
+        </div>
+        <button type="submit" class="btn btn-primary">Profil speichern</button>
+        <div id="profile-msg" style="font-size:12px;margin-top:8px"></div>
+      </form>
+
+      <div style="border-top:1px solid var(--border);padding:16px">
+        <h3 style="font-size:14px;margin-bottom:12px;color:var(--text-muted)">Passwort ändern</h3>
+        <form id="pw-form">
+          <div class="form-group">
+            <label>Aktuelles Passwort</label>
+            <input type="password" name="currentPassword" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Neues Passwort <small style="color:var(--text-muted)">(mind. 8 Zeichen)</small></label>
+            <input type="password" name="newPassword" class="form-control" required minlength="8">
+          </div>
+          <button type="submit" class="btn btn-secondary">Passwort ändern</button>
+          <div id="pw-msg" style="font-size:12px;margin-top:8px"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== EINHEITEN ===== -->
+  <div class="tab-content hidden" data-tab="sessions">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Meine Einheiten <small style="font-weight:400;color:var(--text-muted)">(aktive Saison)</small></h2>
+        <button class="btn btn-primary" onclick="openNewSessionModal()">+ Neue Einheit</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>Wochentag</th><th>Platz</th><th>Zeit</th><th>Teams</th><th>Aktionen</th>
+          </tr></thead>
+          <tbody id="sessions-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Einheit Modal -->
+<div class="modal-overlay hidden" id="session-modal">
+  <div class="modal" style="max-width:520px">
+    <h2 class="modal-title" id="session-modal-title">Neue Einheit</h2>
+    <form id="session-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Platz *</label>
+          <select name="pitch_id" class="form-control"></select>
+        </div>
+        <div class="form-group">
+          <label>Wochentag *</label>
+          <select name="weekday" class="form-control">
+            <option value="0">Montag</option>
+            <option value="1">Dienstag</option>
+            <option value="2">Mittwoch</option>
+            <option value="3">Donnerstag</option>
+            <option value="4">Freitag</option>
+            <option value="5">Samstag</option>
+            <option value="6">Sonntag</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Startzeit *</label>
+          <select name="start_time" class="form-control"></select>
+        </div>
+        <div class="form-group">
+          <label>Endzeit *</label>
+          <select name="end_time" class="form-control"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Teams *</label>
+        <div class="checkbox-group" id="session-teams"></div>
+      </div>
+      <div class="form-group">
+        <label>Wiederholen bis</label>
+        <input type="date" name="valid_until" class="form-control">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('session-modal').classList.add('hidden')">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/trainer.js"></script>
+</body>
+</html>
