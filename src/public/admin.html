@@ -138,7 +138,7 @@
       <div style="overflow-x:auto">
         <table>
           <thead><tr>
-            <th>Datum</th><th>Uhrzeit</th><th>Team</th><th>Gegner</th><th>Typ</th><th>Spielort</th><th>Aktionen</th>
+            <th>Datum</th><th>Uhrzeit</th><th>Team</th><th>Gegner</th><th>Platz</th><th>Aktionen</th>
           </tr></thead>
           <tbody id="matches-tbody"></tbody>
         </table>
@@ -441,22 +441,19 @@
           <input type="time" name="time" class="form-control" placeholder="15:00">
         </div>
         <div class="form-group">
-          <label>Heimspiel / Auswärts</label>
-          <select name="location" class="form-control">
-            <option value="heim">Heimspiel</option>
-            <option value="auswaerts">Auswärtsspiel</option>
-          </select>
+          <label>Platz</label>
+          <select name="pitch_id" class="form-control" id="match-pitch-select"></select>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Gegner</label>
-          <input type="text" name="opponent" class="form-control" placeholder="z.B. FC Beispiel">
-        </div>
-        <div class="form-group">
-          <label>Spielort <small>(bei Auswärts)</small></label>
-          <input type="text" name="venue" class="form-control" placeholder="z.B. Sportplatz Musterstadt">
-        </div>
+      <div class="form-group">
+        <label>Gegner</label>
+        <input type="text" name="opponent" class="form-control" placeholder="z.B. FC Beispiel">
+      </div>
+      <div class="form-group">
+        <label class="checkbox-item" style="cursor:pointer">
+          <input type="checkbox" name="half_pitch">
+          Halber Platz (Training kann trotzdem stattfinden)
+        </label>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="document.getElementById('match-modal').classList.add('hidden')">Abbrechen</button>

@@ -594,8 +594,7 @@ async function renderMatches() {
       <td>${m.time || '–'}</td>
       <td><span class="color-dot" style="background:${m.team_color}"></span> ${m.team_name}</td>
       <td>${m.opponent || '–'}</td>
-      <td><span class="badge badge-${m.location}">${m.location === 'heim' ? 'Heimspiel' : 'Auswärts'}</span></td>
-      <td>${m.venue || '–'}</td>
+      <td>${m.pitch_name ? m.pitch_name + (m.half_pitch ? ' <small style="color:var(--text-muted)">(½)</small>' : '') : '–'}</td>
       <td><div class="actions">
         <button class="btn btn-sm btn-secondary" onclick="openEditMatch(${m.id})">Bearbeiten</button>
         <button class="btn btn-sm btn-danger" onclick="deleteMatch(${m.id})">Löschen</button>
@@ -615,20 +614,29 @@ function setupMatchForm() {
     teamSel.innerHTML += `<option value="${t.id}">${t.name}</option>`;
   }
 
+  const pitchSel = document.getElementById('match-pitch-select');
+  if (pitchSel) pitchSel.innerHTML = allPitches.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = form.dataset.matchId;
     const data = {
-      team_id: parseInt(form.querySelector('[name=team_id]').value),
-      date: form.querySelector('[name=date]').value,
-      time: form.querySelector('[name=time]').value,
-      opponent: form.querySelector('[name=opponent]').value,
-      location: form.querySelector('[name=location]').value,
-      venue: form.querySelector('[name=venue]').value
+      team_id:   parseInt(form.querySelector('[name=team_id]').value),
+      date:      form.querySelector('[name=date]').value,
+      time:      form.querySelector('[name=time]').value || null,
+      opponent:  form.querySelector('[name=opponent]').value || null,
+      pitch_id:  parseInt(form.querySelector('[name=pitch_id]').value) || null,
+      half_pitch: form.querySelector('[name=half_pitch]').checked,
+      location:  'heim'
     };
     try {
       if (id) await api.put(`/api/matches/${id}`, data);
-      else await api.post('/api/matches', data);
+      else {
+        const result = await api.post('/api/matches', data);
+        if (result.cancelledTrainings > 0) {
+          alert(`Gespeichert. ${result.cancelledTrainings} Training(s) an diesem Tag wurden abgesagt.`);
+        }
+      }
       form.reset();
       form.dataset.matchId = '';
       document.getElementById('match-modal').classList.add('hidden');
@@ -657,12 +665,12 @@ window.openEditMatch = async (id) => {
   const form = document.getElementById('match-form');
   form.dataset.matchId = id;
   document.getElementById('match-modal-title').textContent = 'Spieltermin bearbeiten';
-  form.querySelector('[name=team_id]').value = m.team_id;
-  form.querySelector('[name=date]').value = m.date;
-  form.querySelector('[name=time]').value = m.time || '';
-  form.querySelector('[name=opponent]').value = m.opponent || '';
-  form.querySelector('[name=location]').value = m.location;
-  form.querySelector('[name=venue]').value = m.venue || '';
+  form.querySelector('[name=team_id]').value      = m.team_id;
+  form.querySelector('[name=date]').value          = m.date;
+  form.querySelector('[name=time]').value          = m.time || '';
+  form.querySelector('[name=opponent]').value      = m.opponent || '';
+  form.querySelector('[name=pitch_id]').value      = m.pitch_id || '';
+  form.querySelector('[name=half_pitch]').checked  = !!m.half_pitch;
   document.getElementById('match-modal').classList.remove('hidden');
 };
 
