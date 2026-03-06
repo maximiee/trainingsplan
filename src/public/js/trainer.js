@@ -21,6 +21,7 @@ async function init() {
   setupProfileForm();
   setupPasswordForm();
   await renderSessions();
+  await renderMatches();
 }
 
 function updateNavUser(user) {
@@ -253,6 +254,131 @@ window.deleteSession = async (id) => {
   if (!confirm('Alle Einheiten dieser Serie löschen?')) return;
   await api.delete(`/api/sessions/recurrences/${id}`);
   await renderSessions();
+};
+
+// ── Spiele ────────────────────────────────────────────────────
+async function renderMatches() {
+  const activeSeason = allSeasons.find(s => s.is_active) || allSeasons[0];
+  if (!activeSeason) return;
+
+  const myTeamIds = (currentUser.teams || []).map(t => t.id);
+  const tbody = document.getElementById('matches-tbody');
+  tbody.innerHTML = '';
+
+  const allMatches = await api.get(`/api/matches?season_id=${activeSeason.id}`);
+  const matches = allMatches.filter(m => myTeamIds.includes(m.team_id));
+
+  if (matches.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px">Keine Spiele eingetragen.</td></tr>';
+    return;
+  }
+
+  for (const m of matches) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${m.date}</td>
+      <td>${m.time || '–'}</td>
+      <td><span class="color-dot" style="background:${m.team_color}"></span>${m.team_name}</td>
+      <td>${m.opponent || '–'}</td>
+      <td>${m.pitch_name || '–'}</td>
+      <td>${m.half_pitch ? '✓' : '–'}</td>
+      <td><div class="actions">
+        <button class="btn btn-sm btn-secondary" onclick="openEditMatchModal(${m.id})">Bearbeiten</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteMatch(${m.id})">Löschen</button>
+      </div></td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+function buildMatchForm() {
+  const teamSel = document.getElementById('match-team-select');
+  const myTeams = currentUser.teams || [];
+  teamSel.innerHTML = myTeams.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+
+  const pitchSel = document.getElementById('match-pitch-select');
+  pitchSel.innerHTML = allPitches.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+}
+
+window.openNewMatchModal = () => {
+  buildMatchForm();
+  const form = document.getElementById('match-form');
+  form.dataset.matchId = '';
+  document.getElementById('match-modal-title').textContent = 'Neues Spiel';
+  form.reset();
+  form.onsubmit = submitNewMatch;
+  document.getElementById('match-modal').classList.remove('hidden');
+};
+
+window.openEditMatchModal = async (id) => {
+  buildMatchForm();
+  const activeSeason = allSeasons.find(s => s.is_active) || allSeasons[0];
+  const allMatches = await api.get(`/api/matches?season_id=${activeSeason.id}`);
+  const m = allMatches.find(x => x.id === id);
+  if (!m) return;
+
+  const form = document.getElementById('match-form');
+  form.dataset.matchId = id;
+  document.getElementById('match-modal-title').textContent = 'Spiel bearbeiten';
+  form.querySelector('[name=team_id]').value      = m.team_id;
+  form.querySelector('[name=date]').value          = m.date;
+  form.querySelector('[name=time]').value          = m.time || '';
+  form.querySelector('[name=pitch_id]').value      = m.pitch_id || '';
+  form.querySelector('[name=opponent]').value      = m.opponent || '';
+  form.querySelector('[name=half_pitch]').checked  = !!m.half_pitch;
+  form.onsubmit = submitEditMatch;
+  document.getElementById('match-modal').classList.remove('hidden');
+};
+
+async function submitNewMatch(e) {
+  e.preventDefault();
+  const form = document.getElementById('match-form');
+  const activeSeason = allSeasons.find(s => s.is_active) || allSeasons[0];
+  try {
+    const result = await api.post('/api/matches', {
+      season_id: activeSeason.id,
+      team_id:   parseInt(form.querySelector('[name=team_id]').value),
+      date:      form.querySelector('[name=date]').value,
+      time:      form.querySelector('[name=time]').value || null,
+      pitch_id:   parseInt(form.querySelector('[name=pitch_id]').value) || null,
+      opponent:   form.querySelector('[name=opponent]').value || null,
+      half_pitch: form.querySelector('[name=half_pitch]').checked,
+      location:   'heim'
+    });
+    document.getElementById('match-modal').classList.add('hidden');
+    if (result.cancelledTrainings > 0) {
+      alert(`Spiel gespeichert. ${result.cancelledTrainings} Training(s) an diesem Tag wurden abgesagt.`);
+    }
+    await renderMatches();
+  } catch (err) { alert(err.message); }
+}
+
+async function submitEditMatch(e) {
+  e.preventDefault();
+  const form = document.getElementById('match-form');
+  const id = form.dataset.matchId;
+  try {
+    const result = await api.put(`/api/matches/${id}`, {
+      team_id:    parseInt(form.querySelector('[name=team_id]').value),
+      date:       form.querySelector('[name=date]').value,
+      time:       form.querySelector('[name=time]').value || null,
+      pitch_id:   parseInt(form.querySelector('[name=pitch_id]').value) || null,
+      opponent:   form.querySelector('[name=opponent]').value || null,
+      half_pitch: form.querySelector('[name=half_pitch]').checked,
+      location:   'heim'
+    });
+    document.getElementById('match-modal').classList.add('hidden');
+    if (result.cancelledTrainings > 0) {
+      alert(`Spiel gespeichert. ${result.cancelledTrainings} Training(s) an diesem Tag wurden abgesagt.`);
+    }
+    await renderMatches();
+  } catch (err) { alert(err.message); }
+}
+
+window.deleteMatch = async (id) => {
+  if (!confirm('Spiel löschen?')) return;
+  await api.delete(`/api/matches/${id}`);
+  await renderMatches();
 };
 
 document.addEventListener('DOMContentLoaded', init);

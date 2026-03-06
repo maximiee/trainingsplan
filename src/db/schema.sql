@@ -80,6 +80,8 @@ CREATE TABLE IF NOT EXISTS match_appointments (
   opponent TEXT,
   location TEXT NOT NULL DEFAULT 'heim' CHECK(location IN ('heim', 'auswaerts')),
   venue TEXT,
+  pitch_id INTEGER REFERENCES pitches(id),
+  half_pitch INTEGER NOT NULL DEFAULT 0,
   fussball_de_match_id TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

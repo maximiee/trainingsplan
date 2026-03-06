@@ -21,6 +21,15 @@ db.pragma('foreign_keys = ON');
 const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
 db.exec(schema);
 
+// Migrationen
+const columns = db.prepare("PRAGMA table_info(match_appointments)").all().map(c => c.name);
+if (!columns.includes('pitch_id')) {
+  db.exec('ALTER TABLE match_appointments ADD COLUMN pitch_id INTEGER REFERENCES pitches(id)');
+}
+if (!columns.includes('half_pitch')) {
+  db.exec('ALTER TABLE match_appointments ADD COLUMN half_pitch INTEGER NOT NULL DEFAULT 0');
+}
+
 // Grunddaten anlegen, falls Tabellen leer
 function seed() {
   // Plätze
