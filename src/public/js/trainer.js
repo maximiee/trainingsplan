@@ -32,8 +32,17 @@ function updateNavUser(user) {
 function setupTabs() {
   document.querySelectorAll('.admin-tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.admin-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab.dataset.tab));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('hidden', c.dataset.tab !== tab.dataset.tab));
+      const target = tab.dataset.tab;
+      document.querySelectorAll('.admin-tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.tab === target);
+      });
+      document.querySelectorAll('.tab-content').forEach(c => {
+        if (c.dataset.tab === target) {
+          c.classList.remove('hidden');
+        } else {
+          c.classList.add('hidden');
+        }
+      });
     });
   });
 }

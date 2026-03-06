@@ -84,10 +84,12 @@ router.post('/logout', (req, res) => {
 
 // GET /api/auth/me
 router.get('/me', requireAuth, (req, res) => {
+  const user = db.prepare('SELECT email FROM users WHERE id = ?').get(req.session.userId);
   res.json({
-    id: req.session.userId,
-    name: req.session.userName,
-    role: req.session.role,
+    id:    req.session.userId,
+    name:  req.session.userName,
+    email: user?.email || '',
+    role:  req.session.role,
     teams: req.session.teams || []
   });
 });
