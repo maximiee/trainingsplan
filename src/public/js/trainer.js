@@ -9,6 +9,7 @@ async function init() {
   currentUser = await loadCurrentUser();
   updateNavUser(currentUser);
   setupLogout();
+  setupHamburger();
   setupTabs();
 
   document.getElementById('page-title').textContent = `Mein Bereich – ${currentUser.name}`;

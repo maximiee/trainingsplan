@@ -11,12 +11,17 @@
 
 <nav class="navbar">
   <a href="/" class="brand">⚽ Trainingsplan</a>
-  <nav>
-    <a href="/">Wochenplan</a>
-    <a href="/admin.html" class="active">Admin</a>
-  </nav>
-  <span class="user-info" id="nav-user"></span>
-  <button class="btn-logout" id="btn-logout">Abmelden</button>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Menü öffnen" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-menu" id="nav-menu">
+    <nav>
+      <a href="/">Wochenplan</a>
+      <a href="/admin.html" class="active">Admin</a>
+    </nav>
+    <span class="user-info" id="nav-user"></span>
+    <button class="btn-logout" id="btn-logout">Abmelden</button>
+  </div>
 </nav>
 
 <div class="page">

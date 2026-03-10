@@ -14,6 +14,7 @@ async function adminInit() {
 
   updateNavUser(adminUser);
   setupLogout();
+  setupHamburger();
 
   // Import-Tab nur für Superuser sichtbar
   if (adminUser.email !== 'marco.paetz@gmx.net') {

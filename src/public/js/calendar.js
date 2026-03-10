@@ -37,6 +37,7 @@ async function init() {
   userTeamIds = (user.teams || []).map(t => t.id);
   updateNavUser(user);
   setupLogout();
+  setupHamburger();
 
   const params = new URLSearchParams(window.location.search);
   if (params.has('week')) currentMonday = parseWeekParam(params.get('week'));

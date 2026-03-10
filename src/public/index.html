@@ -11,14 +11,19 @@
 
 <nav class="navbar">
   <a href="/" class="brand">⚽ Trainingsplan</a>
-  <nav>
-    <a href="/" class="active">Wochenplan</a>
-    <a href="/trainer.html" id="nav-trainer" style="display:none">Mein Bereich</a>
-    <a href="/admin.html" id="nav-admin" style="display:none">Admin</a>
-  </nav>
-  <span class="user-info" id="nav-user"></span>
-  <button class="btn btn-sm btn-secondary" id="btn-profile" style="margin-right:4px">👤 Profil</button>
-  <button class="btn-logout" id="btn-logout">Abmelden</button>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Menü öffnen" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-menu" id="nav-menu">
+    <nav>
+      <a href="/" class="active">Wochenplan</a>
+      <a href="/trainer.html" id="nav-trainer" style="display:none">Mein Bereich</a>
+      <a href="/admin.html" id="nav-admin" style="display:none">Admin</a>
+    </nav>
+    <span class="user-info" id="nav-user"></span>
+    <button class="btn btn-sm btn-secondary" id="btn-profile" style="margin-right:4px">👤 Profil</button>
+    <button class="btn-logout" id="btn-logout">Abmelden</button>
+  </div>
 </nav>
 
 <div class="cal-page">
