@@ -445,4 +445,21 @@ body {
   .pitch-name-short { display: inline; }
   /* Tages-Header etwas kompakter */
   .cal-day-label { font-size: 11px; padding: 4px 2px; }
+
+  /* Horizontales Scrollen: nur Header clippen, Body-Scroll unverändert */
+  .cal-head,
+  .cal-subhead { overflow: hidden; }
+
+  /* Pitch-Scroll-Wrapper: scrollt nur die Platzspalten */
+  .cal-pitch-scroll {
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .cal-pitch-scroll::-webkit-scrollbar { display: none; }
+
+  /* Zeitspalte bleibt immer links — ist außerhalb des Scroll-Containers */
+  .cal-time-col { flex-shrink: 0; }
 }

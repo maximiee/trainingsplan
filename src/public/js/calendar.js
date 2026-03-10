@@ -179,9 +179,10 @@ function buildCalendarGrid(sessions, matches = []) {
   const cfg        = getConfig();
   const TSLOTS     = totalSlots();
   const THEIGHT    = totalHeight();
-  const pitchCount = pitches.length;
-  const colCount   = cfg.dayIndices.length * pitchCount;
-  const colTemplate = `repeat(${colCount}, 1fr)`;
+  const pitchCount  = pitches.length;
+  const colCount    = cfg.dayIndices.length * pitchCount;
+  const isMobile    = window.innerWidth <= 600;
+  const colTemplate = isMobile ? `repeat(${colCount}, 65px)` : `repeat(${colCount}, 1fr)`;
 
   const today = toISO(new Date());
 
@@ -310,10 +311,27 @@ function buildCalendarGrid(sessions, matches = []) {
     }
   }
 
-  bodyInner.appendChild(colsGrid);
-  bodyScroll.appendChild(bodyInner);
-  container.appendChild(bodyScroll);
+  if (isMobile) {
+    // Auf Mobile: Zeitspalte bleibt außerhalb des horizontalen Scrollbereichs,
+    // nur die Platzspalten scrollen. Header werden per translateX synchronisiert.
+    const pitchScroll = document.createElement('div');
+    pitchScroll.className = 'cal-pitch-scroll';
+    pitchScroll.appendChild(colsGrid);
+    bodyInner.appendChild(timeCol);
+    bodyInner.appendChild(pitchScroll);
+    bodyScroll.appendChild(bodyInner);
+    container.appendChild(bodyScroll);
 
+    pitchScroll.addEventListener('scroll', () => {
+      const x = pitchScroll.scrollLeft;
+      daysHead.style.transform   = `translateX(-${x}px)`;
+      pitchLabels.style.transform = `translateX(-${x}px)`;
+    }, { passive: true });
+  } else {
+    bodyInner.appendChild(colsGrid);
+    bodyScroll.appendChild(bodyInner);
+    container.appendChild(bodyScroll);
+  }
 }
 
 // ── Trainingsblock erstellen ──────────────────────────────────
