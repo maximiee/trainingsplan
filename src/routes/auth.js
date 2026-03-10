@@ -85,12 +85,16 @@ router.post('/logout', (req, res) => {
 // GET /api/auth/me
 router.get('/me', requireAuth, (req, res) => {
   const user = db.prepare('SELECT email FROM users WHERE id = ?').get(req.session.userId);
+  const teams = req.session.role === 'admin' ? [] : db.prepare(`
+    SELECT t.id, t.name, t.color, t.fussball_de_id FROM user_teams ut
+    JOIN teams t ON t.id = ut.team_id WHERE ut.user_id = ?
+  `).all(req.session.userId);
   res.json({
     id:    req.session.userId,
     name:  req.session.userName,
     email: user?.email || '',
     role:  req.session.role,
-    teams: req.session.teams || []
+    teams: req.session.role === 'admin' ? (req.session.teams || []) : teams
   });
 });
 
