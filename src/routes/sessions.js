@@ -207,6 +207,14 @@ router.put('/:id', requireAuth, requireActive, (req, res) => {
   const id = parseInt(req.params.id);
   const { pitch_id, date, start_time, end_time, type, note, teamIds, is_cancelled } = req.body;
 
+  if (req.session.role !== 'admin') {
+    const myTeamIds = (req.session.teams || []).map(t => t.id);
+    const sessionTeams = db.prepare('SELECT team_id FROM session_teams WHERE session_id = ?').all(id).map(r => r.team_id);
+    if (!sessionTeams.some(tid => myTeamIds.includes(tid))) {
+      return res.status(403).json({ error: 'Keine Berechtigung für diese Einheit' });
+    }
+  }
+
   if (start_time && end_time && start_time >= end_time) {
     return res.status(400).json({ error: 'Startzeit muss vor Endzeit liegen' });
   }
@@ -283,6 +291,15 @@ router.put('/:id/future', requireAuth, requireActive, (req, res) => {
 // DELETE /api/sessions/:id
 router.delete('/:id', requireAuth, requireActive, (req, res) => {
   const id = parseInt(req.params.id);
+
+  if (req.session.role !== 'admin') {
+    const myTeamIds = (req.session.teams || []).map(t => t.id);
+    const sessionTeams = db.prepare('SELECT team_id FROM session_teams WHERE session_id = ?').all(id).map(r => r.team_id);
+    if (!sessionTeams.some(tid => myTeamIds.includes(tid))) {
+      return res.status(403).json({ error: 'Keine Berechtigung für diese Einheit' });
+    }
+  }
+
   db.prepare('DELETE FROM session_teams WHERE session_id = ?').run(id);
   db.prepare('DELETE FROM training_sessions WHERE id = ?').run(id);
   res.json({ ok: true });

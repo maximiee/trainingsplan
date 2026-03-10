@@ -501,6 +501,9 @@ function showSessionPopup(session, event) {
   popup.className = 'session-popup';
 
   const teamNames = session.teams?.map(t => t.name).join(', ') || '–';
+  const sessionTeamIds = (session.teams || []).map(t => t.id);
+  const canEdit = userRole === 'admin' || sessionTeamIds.some(id => userTeamIds.includes(id));
+
   popup.innerHTML = `
     <button class="btn-close-popup">×</button>
     <h4>${teamNames}</h4>
@@ -510,12 +513,14 @@ function showSessionPopup(session, event) {
     <div class="popup-row"><span class="popup-label">Typ</span><span>${session.type}</span></div>
     ${session.note ? `<div class="popup-row"><span class="popup-label">Notiz</span><span>${session.note}</span></div>` : ''}
     ${session.is_cancelled ? '<div style="color:var(--danger);margin-top:6px;font-size:12px">⚫ Abgesagt</div>' : ''}
+    ${canEdit ? `
     <div class="popup-actions">
       <button class="btn btn-sm btn-danger" data-del="${session.id}">Löschen</button>
       ${session.is_cancelled
         ? `<button class="btn btn-sm btn-success" data-uncancel="${session.id}">Wieder ansetzen</button>`
         : `<button class="btn btn-sm btn-warning" data-cancel="${session.id}">Absagen</button>`}
     </div>
+    ` : ''}
   `;
 
   popup.querySelector('.btn-close-popup').addEventListener('click', () => popup.remove());
