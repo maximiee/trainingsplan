@@ -32,9 +32,15 @@ router.get('/games/:teamId', requireAuth, async (req, res) => {
       return res.status(502).json({ error: `Fehler von api-fussball.de: next=${nextRes.status} prev=${prevRes.status}` });
     }
 
-    const next = JSON.parse(nextText);
-    const prev = JSON.parse(prevText);
-    res.json({ next: next || [], prev: prev || [] });
+    const nextJson = JSON.parse(nextText);
+    const prevJson = JSON.parse(prevText);
+    const next = Array.isArray(nextJson) ? nextJson : (nextJson.data || []);
+    const prev = Array.isArray(prevJson) ? prevJson : (prevJson.data || []);
+
+    console.log(`[fussball.de] Spiele gefunden: next=${next.length} prev=${prev.length}`);
+    if (next.length > 0) console.log('[fussball.de] Beispiel next_game:', JSON.stringify(next[0]));
+
+    res.json({ next, prev });
   } catch (err) {
     console.log(`[fussball.de] Fehler: ${err.message}`);
     res.status(502).json({ error: `Verbindungsfehler: ${err.message}` });
