@@ -31,7 +31,7 @@
     <button class="admin-tab" data-tab="pitches">🏟️ Plätze</button>
     <button class="admin-tab" data-tab="seasons">📅 Saisons</button>
     <button class="admin-tab" data-tab="sessions">🏃 Einheiten</button>
-    <button class="admin-tab" data-tab="matches">🏆 Spieltermine</button>
+    <button class="admin-tab" data-tab="matches">🏆 Spiele & Turniere</button>
     <button class="admin-tab" data-tab="profile">👤 Profil</button>
     <button class="admin-tab" data-tab="import">📥 Import</button>
     <button class="admin-tab" data-tab="overview">📊 Kader-Übersicht</button>
@@ -133,13 +133,13 @@
   <div class="tab-content hidden" data-tab="matches">
     <div class="card">
       <div class="card-header">
-        <h2 class="card-title">Spieltermine <small style="font-weight:400;color:var(--text-muted)">(aktive Saison)</small></h2>
-        <button class="btn btn-primary" onclick="openNewMatch()">+ Neuer Spieltermin</button>
+        <h2 class="card-title">Spiele & Turniere <small style="font-weight:400;color:var(--text-muted)">(aktive Saison)</small></h2>
+        <button class="btn btn-primary" onclick="openNewMatch()">+ Neuer Termin</button>
       </div>
       <div style="overflow-x:auto">
         <table>
           <thead><tr>
-            <th>Datum</th><th>Uhrzeit</th><th>Team</th><th>Gegner</th><th>Platz</th><th>Aktionen</th>
+            <th>Typ</th><th>Datum</th><th>Uhrzeit</th><th>Team</th><th>Gegner</th><th>Platz</th><th>Aktionen</th>
           </tr></thead>
           <tbody id="matches-tbody"></tbody>
         </table>
@@ -479,11 +479,18 @@
   </div>
 </div>
 
-<!-- Spieltermin-Modal -->
+<!-- Spiel/Turnier-Modal -->
 <div class="modal-overlay hidden" id="match-modal">
   <div class="modal">
-    <h2 class="modal-title" id="match-modal-title">Spieltermin</h2>
+    <h2 class="modal-title" id="match-modal-title">Neuer Termin</h2>
     <form id="match-form">
+      <div class="form-group">
+        <div style="display:flex;gap:8px">
+          <button type="button" class="btn btn-primary" id="match-type-btn-spiel" onclick="setAdminMatchType('spiel')">Spiel</button>
+          <button type="button" class="btn btn-secondary" id="match-type-btn-turnier" onclick="setAdminMatchType('turnier')">Turnier</button>
+        </div>
+        <input type="hidden" name="type" value="spiel">
+      </div>
       <div class="form-row">
         <div class="form-group">
           <label>Team *</label>

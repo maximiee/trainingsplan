@@ -585,7 +585,13 @@ window.deleteRecurrence = async (id) => {
   await renderSessions();
 };
 
-// --- Spieltermine ---
+// --- Spiele & Turniere ---
+window.setAdminMatchType = (type) => {
+  document.getElementById('match-form').querySelector('[name=type]').value = type;
+  document.getElementById('match-type-btn-spiel').className   = type === 'spiel'   ? 'btn btn-primary' : 'btn btn-secondary';
+  document.getElementById('match-type-btn-turnier').className = type === 'turnier' ? 'btn btn-primary' : 'btn btn-secondary';
+};
+
 async function renderMatches() {
   const activeSeason = allSeasons.find(s => s.is_active);
   if (!activeSeason) return;
@@ -596,8 +602,12 @@ async function renderMatches() {
   tbody.innerHTML = '';
 
   for (const m of matches) {
+    const typeBadge = m.type === 'turnier'
+      ? '<span class="badge badge-turnier">Turnier</span>'
+      : '<span class="badge badge-spiel">Spiel</span>';
     const tr = document.createElement('tr');
     tr.innerHTML = `
+      <td>${typeBadge}</td>
       <td>${isoToDE(m.date)}</td>
       <td>${m.time || '–'}</td>
       <td><span class="color-dot" style="background:${m.team_color}"></span> ${m.team_name}</td>
@@ -635,7 +645,8 @@ function setupMatchForm() {
       opponent:  form.querySelector('[name=opponent]').value || null,
       pitch_id:  parseInt(form.querySelector('[name=pitch_id]').value) || null,
       half_pitch: form.querySelector('[name=half_pitch]').checked,
-      location:  'heim'
+      location:  'heim',
+      type:      form.querySelector('[name=type]').value
     };
     try {
       if (id) await api.put(`/api/matches/${id}`, data);
@@ -660,8 +671,9 @@ window.openNewMatch = () => {
   const form = document.getElementById('match-form');
   form.reset();
   form.dataset.matchId = '';
-  document.getElementById('match-modal-title').textContent = 'Neuer Spieltermin';
+  document.getElementById('match-modal-title').textContent = 'Neuer Termin';
   form.querySelector('[name=date]').value = toISO(new Date());
+  setAdminMatchType('spiel');
   modal.classList.remove('hidden');
 };
 
@@ -672,7 +684,8 @@ window.openEditMatch = async (id) => {
 
   const form = document.getElementById('match-form');
   form.dataset.matchId = id;
-  document.getElementById('match-modal-title').textContent = 'Spieltermin bearbeiten';
+  document.getElementById('match-modal-title').textContent = 'Termin bearbeiten';
+  setAdminMatchType(m.type || 'spiel');
   form.querySelector('[name=team_id]').value      = m.team_id;
   form.querySelector('[name=date]').value          = m.date;
   form.querySelector('[name=time]').value          = m.time || '';
