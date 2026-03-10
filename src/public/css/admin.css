@@ -129,3 +129,20 @@
   th, td { padding: 8px 8px; }
   .actions .btn { padding: 3px 8px; }
 }
+
+@media (max-width: 600px) {
+  /* Tabellen horizontal scrollbar, damit Aktions-Buttons nicht abgeschnitten werden */
+  .card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 0;
+  }
+  .card .card-header {
+    padding: 0 16px 16px;
+  }
+  .card table {
+    min-width: 480px; /* verhindert zu starkes Zusammendrücken */
+  }
+  th, td { padding: 8px 10px; white-space: nowrap; }
+  .actions { flex-wrap: nowrap; }
+}
