@@ -12,4 +12,10 @@ services:
       - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@verein.de}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-changeme123}
       - CLUB_NAME=${CLUB_NAME:-Fussballverein}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_SECURE=${SMTP_SECURE:-false}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SMTP_FROM=${SMTP_FROM}
     restart: unless-stopped
