@@ -10,6 +10,7 @@ async function init() {
   updateNavUser(currentUser);
   setupLogout();
   setupHamburger();
+  setupTabsScroll();
   setupTabs();
 
   document.getElementById('page-title').textContent = `Mein Bereich – ${currentUser.name}`;

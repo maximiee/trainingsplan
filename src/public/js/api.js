@@ -118,6 +118,23 @@ function setupLogout() {
   });
 }
 
+// Tabs: Scroll-Indikator (Fade-Gradient rechts wenn Inhalt überläuft)
+function setupTabsScroll() {
+  const wrapper = document.querySelector('.tabs-wrapper');
+  const tabs = document.querySelector('.admin-tabs');
+  if (!wrapper || !tabs) return;
+
+  function update() {
+    const canScroll = tabs.scrollWidth > tabs.clientWidth;
+    const atEnd = tabs.scrollLeft + tabs.clientWidth >= tabs.scrollWidth - 4;
+    wrapper.classList.toggle('scrollable', canScroll && !atEnd);
+  }
+
+  update();
+  tabs.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update, { passive: true });
+}
+
 // Hamburger-Menü
 function setupHamburger() {
   const btn = document.getElementById('nav-hamburger');

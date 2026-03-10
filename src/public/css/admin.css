@@ -1,11 +1,32 @@
 /* Admin-Bereich spezifische Styles */
+.tabs-wrapper {
+  position: relative;
+  margin-bottom: 24px;
+}
+.tabs-wrapper::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 2px;
+  width: 40px;
+  background: linear-gradient(to right, transparent, var(--bg));
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.tabs-wrapper.scrollable::after { opacity: 1; }
+
 .admin-tabs {
   display: flex;
   gap: 4px;
   border-bottom: 2px solid var(--border);
-  margin-bottom: 24px;
   overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
+.admin-tabs::-webkit-scrollbar { display: none; }
+
 .admin-tab {
   padding: 10px 20px;
   border: none;
@@ -18,6 +39,7 @@
   white-space: nowrap;
   font-weight: 500;
   transition: color 0.15s;
+  flex-shrink: 0;
 }
 .admin-tab:hover { color: var(--text); }
 .admin-tab.active {
@@ -102,8 +124,7 @@
 
 /* Responsive Admin-Layout */
 @media (max-width: 768px) {
-  .admin-tabs { padding-bottom: 4px; }
-  .admin-tab { padding: 8px 12px; }
+  .admin-tab { padding: 8px 14px; font-size: 13px; }
   table { font-size: 12px; }
   th, td { padding: 8px 8px; }
   .actions .btn { padding: 3px 8px; }
