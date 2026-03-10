@@ -14,14 +14,17 @@ router.get('/games/:teamId', requireAuth, async (req, res) => {
   const headers = { 'x-auth-token': token };
 
   try {
-    const [nextRes, prevRes] = await Promise.all([
+    const [teamRes, nextRes, prevRes] = await Promise.all([
+      fetch(`https://api-fussball.de/api/team/${teamId}`, { headers }),
       fetch(`https://api-fussball.de/api/team/next_games/${teamId}`, { headers }),
       fetch(`https://api-fussball.de/api/team/prev_games/${teamId}`, { headers })
     ]);
 
+    const teamText = await teamRes.text();
     const nextText = await nextRes.text();
     const prevText = await prevRes.text();
 
+    console.log(`[fussball.de] team status=${teamRes.status} body=${teamText}`);
     console.log(`[fussball.de] next_games status=${nextRes.status} body=${nextText}`);
     console.log(`[fussball.de] prev_games status=${prevRes.status} body=${prevText}`);
 
