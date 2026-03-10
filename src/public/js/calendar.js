@@ -541,10 +541,23 @@ function parseWeekParam(str) {
 }
 
 // ── Einheit anlegen Modal ─────────────────────────────────────
+let calSessionMode = 'recurring';
+
+window.calSetMode = (mode) => {
+  calSessionMode = mode;
+  document.getElementById('cal-recurring-fields').classList.toggle('hidden', mode !== 'recurring');
+  document.getElementById('cal-single-fields').classList.toggle('hidden', mode !== 'single');
+  document.getElementById('cal-mode-btn-recurring').className = mode === 'recurring' ? 'btn btn-primary' : 'btn btn-secondary';
+  document.getElementById('cal-mode-btn-single').className    = mode === 'single'    ? 'btn btn-primary' : 'btn btn-secondary';
+};
+
 function openCalSessionModal() {
   const modal = document.getElementById('cal-session-modal');
   const form  = document.getElementById('cal-session-form');
   if (!modal || !form) return;
+
+  // Modus zurücksetzen
+  calSetMode('recurring');
 
   // Platz-Select befüllen
   const pitchSel = form.querySelector('[name=pitch_id]');
@@ -578,25 +591,51 @@ function openCalSessionModal() {
   const wd = new Date().getDay();
   form.querySelector('[name=weekday]').value = wd === 0 ? 6 : wd - 1;
 
-  // Saison-Enddatum als Standard für valid_until
+  // Saison-Daten als Standard
   const activeSeason = seasons.find(s => s.is_active) || seasons[0];
-  if (activeSeason) form.querySelector('[name=valid_until]').value = activeSeason.end_date;
+  if (activeSeason) {
+    form.querySelector('[name=valid_from]').value  = activeSeason.start_date;
+    form.querySelector('[name=valid_until]').value = activeSeason.end_date;
+  }
+
+  // Heutiges Datum als Standard für Einzeltermin
+  form.querySelector('[name=single_date]').value = toISO(new Date());
 
   form.onsubmit = async (e) => {
     e.preventDefault();
     const teamIds = [...form.querySelectorAll('[name=teamIds]:checked')].map(el => parseInt(el.value));
-    const data = {
-      season_id:   currentSeasonId,
-      pitch_id:    parseInt(form.querySelector('[name=pitch_id]').value),
-      date:        toISO(addDays(currentMonday, parseInt(form.querySelector('[name=weekday]').value))),
-      start_time:  form.querySelector('[name=start_time]').value,
-      end_time:    form.querySelector('[name=end_time]').value,
-      type:        'training',
-      teamIds,
-      recurring:   true,
-      weekday:     parseInt(form.querySelector('[name=weekday]').value),
-      valid_until: form.querySelector('[name=valid_until]').value
-    };
+
+    let data;
+    if (calSessionMode === 'recurring') {
+      const weekday   = parseInt(form.querySelector('[name=weekday]').value);
+      const validFrom = form.querySelector('[name=valid_from]').value;
+      data = {
+        season_id:   currentSeasonId,
+        pitch_id:    parseInt(form.querySelector('[name=pitch_id]').value),
+        date:        validFrom,
+        start_time:  form.querySelector('[name=start_time]').value,
+        end_time:    form.querySelector('[name=end_time]').value,
+        type:        'training',
+        teamIds,
+        recurring:   true,
+        weekday,
+        valid_until: form.querySelector('[name=valid_until]').value
+      };
+    } else {
+      const singleDate = form.querySelector('[name=single_date]').value;
+      if (!singleDate) { alert('Bitte ein Datum auswählen.'); return; }
+      data = {
+        season_id:  currentSeasonId,
+        pitch_id:   parseInt(form.querySelector('[name=pitch_id]').value),
+        date:       singleDate,
+        start_time: form.querySelector('[name=start_time]').value,
+        end_time:   form.querySelector('[name=end_time]').value,
+        type:       'training',
+        teamIds,
+        recurring:  false
+      };
+    }
+
     try {
       await api.post('/api/sessions', data);
       modal.classList.add('hidden');
