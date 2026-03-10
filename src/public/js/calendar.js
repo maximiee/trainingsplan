@@ -206,7 +206,8 @@ function buildCalendarGrid(sessions, matches = []) {
     const el = document.createElement('div');
     el.className = 'cal-day-label' + (isToday ? ' today' : '');
     el.style.gridColumn = `span ${pitchCount}`;
-    el.innerHTML = `<strong>${WEEKDAYS_LONG[d]}</strong>&nbsp;<span style="font-weight:400;font-size:11px">${day.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'})}</span>`;
+    const dateStr = day.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit'});
+    el.innerHTML = `<strong class="day-name-long">${WEEKDAYS_LONG[d]}</strong><strong class="day-name-short">${WEEKDAYS[d]}</strong>&nbsp;<span style="font-weight:400;font-size:11px">${dateStr}</span>`;
     daysHead.appendChild(el);
   }
   head.appendChild(daysHead);
@@ -230,7 +231,8 @@ function buildCalendarGrid(sessions, matches = []) {
     for (const pitch of pitches) {
       const el = document.createElement('div');
       el.className = 'cal-pitch-label';
-      el.textContent = pitch.name;
+      const shortPitch = pitch.name.split(/[\s\-–]/)[0];
+      el.innerHTML = `<span class="pitch-name-long">${pitch.name}</span><span class="pitch-name-short">${shortPitch}</span>`;
       pitchLabels.appendChild(el);
     }
   }

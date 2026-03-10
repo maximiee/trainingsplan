@@ -425,9 +425,24 @@ body {
 
 .btn-close-popup:hover { color: var(--text); }
 
+/* Responsive Kurzformen */
+.day-name-short { display: none; }
+.pitch-name-short { display: none; }
+
 @media (max-width: 900px) {
   .cal-week-label { font-size: 12px; }
   .training-block .block-time { display: none; }
   .cal-time-gutter { width: 36px; min-width: 36px; }
   .cal-time-col { width: 36px; min-width: 36px; }
+}
+
+@media (max-width: 600px) {
+  /* Wochentage abkürzen: Montag → Mo */
+  .day-name-long { display: none; }
+  .day-name-short { display: inline; }
+  /* Platznamen abkürzen: A-Platz → A */
+  .pitch-name-long { display: none; }
+  .pitch-name-short { display: inline; }
+  /* Tages-Header etwas kompakter */
+  .cal-day-label { font-size: 11px; padding: 4px 2px; }
 }
