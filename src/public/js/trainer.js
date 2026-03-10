@@ -496,17 +496,17 @@ async function renderSquad() {
 }
 
 function buildSquadCard(team) {
+  const isJugend = team.name.toLowerCase().includes('jugend');
   const card = document.createElement('div');
+  card.id = `squad-card-${team.id}`;
   card.className = 'card';
   card.style.marginBottom = '20px';
-  card.innerHTML = `
-    <div class="card-header">
-      <h2 class="card-title">
-        <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${team.color};margin-right:8px;vertical-align:middle"></span>
-        ${team.name}
-      </h2>
-      <button class="btn btn-secondary" onclick="addSquadRow(${team.id})">+ Jahrgang hinzufügen</button>
-    </div>
+
+  const fdBtn = team.fussball_de_id
+    ? `<button class="btn btn-secondary" onclick="openFdGamesModal(${team.id}, '${team.fussball_de_id}')">Spiele abrufen</button>`
+    : '';
+
+  const squadSection = isJugend ? `
     <div style="overflow-x:auto;padding:0 16px">
       <table id="squad-table-${team.id}">
         <thead><tr>
@@ -524,11 +524,62 @@ function buildSquadCard(team) {
         <span id="squad-msg-${team.id}" style="font-size:12px"></span>
         <button class="btn btn-primary" onclick="saveSquad(${team.id})">Speichern</button>
       </div>
+    </div>` : '';
+
+  card.innerHTML = `
+    <div class="card-header">
+      <h2 class="card-title">
+        <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${team.color};margin-right:8px;vertical-align:middle"></span>
+        ${team.name}
+      </h2>
+      <div style="display:flex;gap:8px">
+        ${fdBtn}
+        ${isJugend ? `<button class="btn btn-secondary" onclick="addSquadRow(${team.id})">+ Jahrgang</button>` : ''}
+        <button class="btn btn-secondary" onclick="openTrainerTeamModal(${team.id})">Bearbeiten</button>
+      </div>
     </div>
+    ${squadSection}
   `;
-  renderSquadRows(team.id);
+
+  if (isJugend) renderSquadRows(team.id);
   return card;
 }
+
+window.openTrainerTeamModal = (teamId) => {
+  const team = (currentUser.teams || []).find(t => t.id === teamId);
+  if (!team) return;
+  const form = document.getElementById('trainer-team-form');
+  form.dataset.teamId = teamId;
+  form.querySelector('[name=name]').value = team.name;
+  form.querySelector('[name=age_group]').value = team.age_group || '';
+  form.querySelector('[name=color]').value = team.color;
+  form.querySelector('[name=fussball_de_id]').value = team.fussball_de_id || '';
+  document.getElementById('trainer-team-modal').classList.remove('hidden');
+};
+
+document.getElementById('trainer-team-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const teamId = parseInt(form.dataset.teamId);
+  const data = {
+    name: form.querySelector('[name=name]').value,
+    age_group: form.querySelector('[name=age_group]').value,
+    color: form.querySelector('[name=color]').value,
+    fussball_de_id: form.querySelector('[name=fussball_de_id]').value
+  };
+  try {
+    await api.put(`/api/teams/${teamId}`, data);
+    document.getElementById('trainer-team-modal').classList.add('hidden');
+    // Lokalen Team-State aktualisieren und Karte neu bauen
+    const team = (currentUser.teams || []).find(t => t.id === teamId);
+    if (team) Object.assign(team, data);
+    const card = document.getElementById(`squad-card-${teamId}`);
+    if (card) card.replaceWith(buildSquadCard(team));
+    renderFdButtons();
+  } catch (err) {
+    alert(err.message);
+  }
+});
 
 function renderSquadRows(teamId) {
   const rows = squadState[teamId] || [];

@@ -60,14 +60,19 @@ router.post('/', requireAuth, requireAdmin, (req, res) => {
 });
 
 // PUT /api/teams/:id
-router.put('/:id', requireAuth, requireAdmin, (req, res) => {
+router.put('/:id', requireAuth, (req, res) => {
+  const teamId = parseInt(req.params.id);
+  if (req.session.role !== 'admin') {
+    const assigned = db.prepare('SELECT 1 FROM user_teams WHERE user_id = ? AND team_id = ?').get(req.session.userId, teamId);
+    if (!assigned) return res.status(403).json({ error: 'Keine Berechtigung für dieses Team' });
+  }
   const { name, age_group, color, fussball_de_id } = req.body;
   if (!name || !color) {
     return res.status(400).json({ error: 'Name und Farbe erforderlich' });
   }
   db.prepare(
     'UPDATE teams SET name = ?, age_group = ?, color = ?, fussball_de_id = ? WHERE id = ?'
-  ).run(name, age_group || null, color, fussball_de_id || null, parseInt(req.params.id));
+  ).run(name, age_group || null, color, fussball_de_id || null, teamId);
   res.json({ ok: true });
 });
 

@@ -241,6 +241,39 @@
   </div>
 </div>
 
+<!-- Team-Bearbeiten-Modal (Trainer) -->
+<div class="modal-overlay hidden" id="trainer-team-modal">
+  <div class="modal" style="max-width:480px">
+    <h2 class="modal-title">Team bearbeiten</h2>
+    <form id="trainer-team-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Name *</label>
+          <input type="text" name="name" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label>Altersklasse</label>
+          <input type="text" name="age_group" class="form-control" placeholder="z.B. U15">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Farbe *</label>
+          <input type="color" name="color" class="form-control" style="height:42px;padding:4px">
+        </div>
+        <div class="form-group">
+          <label>fussball.de ID</label>
+          <input type="text" name="fussball_de_id" class="form-control" placeholder="Team-ID aus der URL">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('trainer-team-modal').classList.add('hidden')">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">Speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- fussball.de Spiele-Modal -->
 <div class="modal-overlay hidden" id="fd-modal">
   <div class="modal" style="max-width:700px">
