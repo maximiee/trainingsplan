@@ -21,9 +21,21 @@ async function init() {
 
   setupProfileForm();
   setupPasswordForm();
+  renderFdButtons();
   await renderSessions();
   await renderMatches();
   await renderSquad();
+}
+
+function renderFdButtons() {
+  const container = document.getElementById('fd-buttons');
+  if (!container) return;
+  const teams = (currentUser.teams || []).filter(t => t.fussball_de_id);
+  container.innerHTML = teams.map(t =>
+    `<button class="btn btn-secondary" onclick="openFdGamesModal(${t.id}, '${t.fussball_de_id}')">
+      Spiele abrufen: ${t.name}
+    </button>`
+  ).join('');
 }
 
 function updateNavUser(user) {

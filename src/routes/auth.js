@@ -31,7 +31,7 @@ router.post('/register', (req, res) => {
   }
 
   const teams = db.prepare(`
-    SELECT t.id, t.name, t.color FROM user_teams ut
+    SELECT t.id, t.name, t.color, t.fussball_de_id FROM user_teams ut
     JOIN teams t ON t.id = ut.team_id WHERE ut.user_id = ?
   `).all(userId);
 

@@ -96,7 +96,10 @@
     <div class="card">
       <div class="card-header">
         <h2 class="card-title">Spiele & Turniere <small style="font-weight:400;color:var(--text-muted)">(aktive Saison)</small></h2>
-        <button class="btn btn-primary" onclick="openNewMatchModal()">+ Neuer Termin</button>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div id="fd-buttons"></div>
+          <button class="btn btn-primary" onclick="openNewMatchModal()">+ Neuer Termin</button>
+        </div>
       </div>
       <div style="overflow-x:auto">
         <table>
@@ -238,7 +241,19 @@
   </div>
 </div>
 
+<!-- fussball.de Spiele-Modal -->
+<div class="modal-overlay hidden" id="fd-modal">
+  <div class="modal" style="max-width:700px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h2 class="modal-title" style="margin:0">Spiele von fussball.de</h2>
+      <button class="btn btn-secondary btn-sm" onclick="closeFdModal()">Schließen</button>
+    </div>
+    <div id="fd-modal-body"></div>
+  </div>
+</div>
+
 <script src="/js/api.js"></script>
+<script src="/js/fussball-de.js"></script>
 <script src="/js/trainer.js"></script>
 </body>
 </html>

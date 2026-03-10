@@ -214,6 +214,7 @@ async function renderTeams() {
       <td><span class="badge badge-${t.is_active ? 'active' : 'inactive'}">${t.is_active ? 'Aktiv' : 'Inaktiv'}</span></td>
       <td><div class="actions">
         <button class="btn btn-sm btn-secondary" onclick="openEditTeam(${t.id})">Bearbeiten</button>
+        ${t.fussball_de_id ? `<button class="btn btn-sm btn-primary" onclick="openFdGamesModal(${t.id}, '${t.fussball_de_id}')">Spiele abrufen</button>` : ''}
         <button class="btn btn-sm ${t.is_active ? 'btn-warning' : 'btn-success'}"
           onclick="${t.is_active ? 'deactivateTeam' : 'activateTeam'}(${t.id})">
           ${t.is_active ? 'Deaktivieren' : 'Aktivieren'}
