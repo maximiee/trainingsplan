@@ -79,6 +79,34 @@ async function notifyMatchCreated(match, cancelledCount) {
   }
 }
 
+// Training wieder angesetzt → Trainer der betroffenen Teams informieren
+async function notifyTrainingReactivated(sessionId) {
+  const session = db.prepare('SELECT * FROM training_sessions WHERE id = ?').get(sessionId);
+  if (!session) return;
+  const teams = db.prepare(`
+    SELECT t.id, t.name FROM session_teams st
+    JOIN teams t ON t.id = st.team_id WHERE st.session_id = ?
+  `).all(sessionId);
+  if (!teams.length) return;
+
+  const trainers = getTrainersForTeams(teams.map(t => t.id));
+  if (!trainers.length) return;
+
+  const dateStr = deDE(session.date);
+  const teamNames = teams.map(t => t.name).join(', ');
+
+  for (const trainer of trainers) {
+    await sendMail(
+      trainer.email,
+      `Training wieder angesetzt: ${teamNames} am ${dateStr}`,
+      `<p>Hallo ${trainer.name},</p>
+       <p>das Training von <b>${teamNames}</b> am <b>${dateStr}</b> (${session.start_time}–${session.end_time} Uhr) findet wieder statt.</p>
+       ${session.note ? `<p><b>Hinweis:</b> ${session.note}</p>` : ''}
+       <p>Viele Grüße<br>Trainingsplan</p>`
+    );
+  }
+}
+
 // Training manuell abgesagt → Trainer der betroffenen Teams informieren
 async function notifyTrainingCancelled(sessionId) {
   const session = db.prepare('SELECT * FROM training_sessions WHERE id = ?').get(sessionId);
@@ -107,4 +135,4 @@ async function notifyTrainingCancelled(sessionId) {
   }
 }
 
-module.exports = { notifyMatchCreated, notifyTrainingCancelled };
+module.exports = { notifyMatchCreated, notifyTrainingCancelled, notifyTrainingReactivated };

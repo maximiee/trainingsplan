@@ -2,7 +2,7 @@ const express = require('express');
 const db = require('../db/database');
 const { requireAuth, requireActive } = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/roleCheck');
-const { notifyTrainingCancelled } = require('../services/mailer');
+const { notifyTrainingCancelled, notifyTrainingReactivated } = require('../services/mailer');
 const router = express.Router();
 
 // GET /api/sessions?start=YYYY-MM-DD&end=YYYY-MM-DD&season_id=X
@@ -232,8 +232,10 @@ router.put('/:id', requireAuth, requireActive, (req, res) => {
     for (const tid of teamIds) insert.run(id, tid);
   }
 
-  if (is_cancelled === 1 && wasNotCancelled && wasNotCancelled.is_cancelled === 0) {
+  if (is_cancelled === 1 && wasNotCancelled?.is_cancelled === 0) {
     notifyTrainingCancelled(id).catch(() => {});
+  } else if (is_cancelled === 0 && wasNotCancelled?.is_cancelled === 1) {
+    notifyTrainingReactivated(id).catch(() => {});
   }
 
   res.json({ ok: true });
