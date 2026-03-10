@@ -58,4 +58,43 @@ router.post('/:id/activate', requireAuth, requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+// GET /api/teams/:id/squad – Kader eines Teams
+router.get('/:id/squad', requireAuth, (req, res) => {
+  const teamId = parseInt(req.params.id);
+  if (req.session.role !== 'admin') {
+    const assigned = db.prepare('SELECT 1 FROM user_teams WHERE user_id = ? AND team_id = ?').get(req.session.userId, teamId);
+    if (!assigned) return res.status(403).json({ error: 'Kein Zugriff' });
+  }
+  const entries = db.prepare(
+    'SELECT id, year, gender, count FROM team_squad WHERE team_id = ? ORDER BY year DESC, gender'
+  ).all(teamId);
+  res.json(entries);
+});
+
+// PUT /api/teams/:id/squad – Kader speichern
+router.put('/:id/squad', requireAuth, (req, res) => {
+  const teamId = parseInt(req.params.id);
+  if (req.session.role !== 'admin') {
+    const assigned = db.prepare('SELECT 1 FROM user_teams WHERE user_id = ? AND team_id = ?').get(req.session.userId, teamId);
+    if (!assigned) return res.status(403).json({ error: 'Kein Zugriff' });
+  }
+  const entries = req.body;
+  if (!Array.isArray(entries)) return res.status(400).json({ error: 'Array erwartet' });
+
+  const deleteAll = db.prepare('DELETE FROM team_squad WHERE team_id = ?');
+  const insert = db.prepare(
+    'INSERT INTO team_squad (team_id, year, gender, count) VALUES (?, ?, ?, ?)'
+  );
+  db.transaction(() => {
+    deleteAll.run(teamId);
+    for (const e of entries) {
+      const count = parseInt(e.count) || 0;
+      if (count > 0 && e.year && (e.gender === 'm' || e.gender === 'w')) {
+        insert.run(teamId, parseInt(e.year), e.gender, count);
+      }
+    }
+  })();
+  res.json({ ok: true });
+});
+
 module.exports = router;

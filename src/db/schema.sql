@@ -85,3 +85,13 @@ CREATE TABLE IF NOT EXISTS match_appointments (
   fussball_de_match_id TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS team_squad (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+  year INTEGER NOT NULL,
+  gender TEXT NOT NULL CHECK(gender IN ('m', 'w')),
+  count INTEGER NOT NULL DEFAULT 0,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(team_id, year, gender)
+);

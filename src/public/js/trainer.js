@@ -1,6 +1,7 @@
 let allTeams   = [];
 let allPitches = [];
 let allSeasons = [];
+const squadState = {}; // teamId -> [{year, gender, count}]
 
 const DAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
 
@@ -22,6 +23,7 @@ async function init() {
   setupPasswordForm();
   await renderSessions();
   await renderMatches();
+  await renderSquad();
 }
 
 function updateNavUser(user) {
@@ -378,6 +380,122 @@ window.deleteMatch = async (id) => {
   if (!confirm('Spiel löschen?')) return;
   await api.delete(`/api/matches/${id}`);
   await renderMatches();
+};
+
+// ── Kader / Meine Teams ───────────────────────────────────────
+async function renderSquad() {
+  const myTeams = currentUser.teams || [];
+  const container = document.getElementById('squad-container');
+  container.innerHTML = '';
+
+  if (myTeams.length === 0) {
+    container.innerHTML = '<div class="card" style="padding:20px;color:var(--text-muted)">Keine Mannschaft zugeordnet.</div>';
+    return;
+  }
+
+  for (const team of myTeams) {
+    const entries = await api.get(`/api/teams/${team.id}/squad`);
+    squadState[team.id] = entries.map(e => ({ ...e }));
+    container.appendChild(buildSquadCard(team));
+  }
+}
+
+function buildSquadCard(team) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.marginBottom = '20px';
+  card.innerHTML = `
+    <div class="card-header">
+      <h2 class="card-title">
+        <span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:${team.color};margin-right:8px;vertical-align:middle"></span>
+        ${team.name}
+      </h2>
+      <button class="btn btn-secondary" onclick="addSquadRow(${team.id})">+ Jahrgang hinzufügen</button>
+    </div>
+    <div style="overflow-x:auto;padding:0 16px">
+      <table id="squad-table-${team.id}">
+        <thead><tr>
+          <th style="width:110px">Anzahl</th>
+          <th style="width:150px">Geschlecht</th>
+          <th style="width:120px">Jahrgang</th>
+          <th style="width:60px"></th>
+        </tr></thead>
+        <tbody id="squad-tbody-${team.id}"></tbody>
+      </table>
+    </div>
+    <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <span id="squad-total-${team.id}" style="font-size:13px;color:var(--text-muted);font-weight:500"></span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span id="squad-msg-${team.id}" style="font-size:12px"></span>
+        <button class="btn btn-primary" onclick="saveSquad(${team.id})">Speichern</button>
+      </div>
+    </div>
+  `;
+  renderSquadRows(team.id);
+  return card;
+}
+
+function renderSquadRows(teamId) {
+  const rows = squadState[teamId] || [];
+  const tbody = document.getElementById(`squad-tbody-${teamId}`);
+  if (!tbody) return;
+
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Noch keine Jahrgänge eingetragen.</td></tr>';
+  } else {
+    tbody.innerHTML = rows.map((r, i) => `
+      <tr>
+        <td>
+          <input type="number" class="form-control" style="width:80px" value="${r.count}" min="0" max="999"
+            oninput="squadState[${teamId}][${i}].count = parseInt(this.value)||0; updateSquadTotal(${teamId})">
+        </td>
+        <td>
+          <select class="form-control" onchange="squadState[${teamId}][${i}].gender = this.value">
+            <option value="m" ${r.gender === 'm' ? 'selected' : ''}>Jungen</option>
+            <option value="w" ${r.gender === 'w' ? 'selected' : ''}>Mädchen</option>
+          </select>
+        </td>
+        <td>
+          <input type="number" class="form-control" style="width:90px" value="${r.year}" min="1990" max="2030"
+            oninput="squadState[${teamId}][${i}].year = parseInt(this.value)||0">
+        </td>
+        <td>
+          <button class="btn btn-sm btn-danger" onclick="removeSquadRow(${teamId}, ${i})">✕</button>
+        </td>
+      </tr>`).join('');
+  }
+  updateSquadTotal(teamId);
+}
+
+function updateSquadTotal(teamId) {
+  const rows = squadState[teamId] || [];
+  const total = rows.reduce((s, r) => s + (parseInt(r.count) || 0), 0);
+  const el = document.getElementById(`squad-total-${teamId}`);
+  if (el) el.textContent = total > 0 ? `Mannschaftsstärke: ${total} Spieler` : '';
+}
+
+window.addSquadRow = (teamId) => {
+  if (!squadState[teamId]) squadState[teamId] = [];
+  squadState[teamId].push({ year: new Date().getFullYear() - 10, gender: 'm', count: 0 });
+  renderSquadRows(teamId);
+};
+
+window.removeSquadRow = (teamId, index) => {
+  squadState[teamId].splice(index, 1);
+  renderSquadRows(teamId);
+};
+
+window.saveSquad = async (teamId) => {
+  const msg = document.getElementById(`squad-msg-${teamId}`);
+  try {
+    await api.put(`/api/teams/${teamId}/squad`, squadState[teamId] || []);
+    msg.style.color = 'var(--success)';
+    msg.textContent = '✓ Gespeichert';
+    setTimeout(() => { msg.textContent = ''; }, 3000);
+  } catch (err) {
+    msg.style.color = 'var(--danger)';
+    msg.textContent = err.message;
+  }
 };
 
 document.addEventListener('DOMContentLoaded', init);
