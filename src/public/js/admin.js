@@ -240,9 +240,14 @@ async function openTeamModal(team) {
     form.querySelector('[name=age_group]').value = team.age_group || '';
     form.querySelector('[name=color]').value = team.color;
     form.querySelector('[name=fussball_de_id]').value = team.fussball_de_id || '';
-    const entries = await api.get(`/api/teams/${team.id}/squad`);
-    adminSquadState = entries.map(e => ({ ...e }));
-    squadSection.classList.remove('hidden');
+    const isJugend = team.name.toLowerCase().includes('jugend');
+    if (isJugend) {
+      const entries = await api.get(`/api/teams/${team.id}/squad`);
+      adminSquadState = entries.map(e => ({ ...e }));
+      squadSection.classList.remove('hidden');
+    } else {
+      squadSection.classList.add('hidden');
+    }
   } else {
     squadSection.classList.add('hidden');
   }
@@ -301,7 +306,9 @@ document.getElementById('team-form')?.addEventListener('submit', async (e) => {
   try {
     if (id) {
       await api.put(`/api/teams/${id}`, data);
-      await api.put(`/api/teams/${id}/squad`, adminSquadState);
+      if (!document.getElementById('squad-section').classList.contains('hidden')) {
+        await api.put(`/api/teams/${id}/squad`, adminSquadState);
+      }
     } else {
       await api.post('/api/teams', data);
     }
