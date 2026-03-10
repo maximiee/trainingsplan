@@ -293,8 +293,11 @@ function buildCalendarGrid(sessions, matches = []) {
         if (block) col.appendChild(block);
       }
 
-      // Spiel-Blöcke für diesen Tag + Platz
-      const colMatches = matches.filter(m => m.date === iso && m.pitch_id === pitch.id && m.time);
+      // Spiel-Blöcke für diesen Tag + Platz (ohne Platz → erste Spalte)
+      const colMatches = matches.filter(m =>
+        m.date === iso && m.time &&
+        (m.pitch_id === pitch.id || (m.pitch_id == null && pi === 0))
+      );
       for (const m of colMatches) {
         const block = createMatchBlock(m, cfg.startHour);
         if (block) col.appendChild(block);
