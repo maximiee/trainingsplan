@@ -387,20 +387,85 @@ function createMatchBlock(match, startHour) {
 function showMatchPopup(match, event) {
   document.querySelector('.session-popup')?.remove();
 
+  const canEdit = userRole === 'admin' || userTeamIds.includes(match.team_id);
+  const pitchOptions = pitches.map(p =>
+    `<option value="${p.id}" ${p.id === match.pitch_id ? 'selected' : ''}>${p.name}</option>`
+  ).join('');
+
   const popup = document.createElement('div');
   popup.className = 'session-popup';
-  popup.innerHTML = `
-    <button class="btn-close-popup">×</button>
-    <h4>🏆 ${match.team_name} vs. ${match.opponent || '?'}</h4>
-    <div class="popup-row"><span class="popup-label">Datum</span><span>${isoToDE(match.date)}</span></div>
-    <div class="popup-row"><span class="popup-label">Anstoß</span><span>${match.time ? match.time + ' Uhr' : '–'}</span></div>
-    <div class="popup-row"><span class="popup-label">Platz</span><span>${match.pitch_name || '–'}${match.half_pitch ? ' (halber Platz)' : ''}</span></div>
-  `;
+
+  if (canEdit) {
+    popup.innerHTML = `
+      <button class="btn-close-popup">×</button>
+      <h4>🏆 ${match.team_name}</h4>
+      <div class="popup-row">
+        <span class="popup-label">Gegner</span>
+        <input class="form-control" id="pe-opponent" value="${match.opponent || ''}" style="width:140px;padding:3px 6px;font-size:13px">
+      </div>
+      <div class="popup-row">
+        <span class="popup-label">Datum</span>
+        <span>${isoToDE(match.date)}</span>
+      </div>
+      <div class="popup-row">
+        <span class="popup-label">Anstoß</span>
+        <input type="time" class="form-control" id="pe-time" value="${match.time || ''}" style="width:110px;padding:3px 6px;font-size:13px">
+      </div>
+      <div class="popup-row">
+        <span class="popup-label">Platz</span>
+        <select class="form-control" id="pe-pitch" style="width:140px;padding:3px 6px;font-size:13px">
+          <option value="">– kein Platz –</option>
+          ${pitchOptions}
+        </select>
+      </div>
+      <div class="popup-row">
+        <span class="popup-label">Heim/Ausw.</span>
+        <select class="form-control" id="pe-location" style="width:140px;padding:3px 6px;font-size:13px">
+          <option value="heim" ${match.location === 'heim' ? 'selected' : ''}>Heim</option>
+          <option value="auswaerts" ${match.location === 'auswaerts' ? 'selected' : ''}>Auswärts</option>
+        </select>
+      </div>
+      <div class="popup-actions">
+        <button class="btn btn-sm btn-danger" id="pe-delete">Löschen</button>
+        <button class="btn btn-sm btn-primary" id="pe-save">Speichern</button>
+      </div>
+    `;
+    popup.querySelector('#pe-save').addEventListener('click', async () => {
+      const pitch_id = popup.querySelector('#pe-pitch').value;
+      await api.put(`/api/matches/${match.id}`, {
+        team_id:   match.team_id,
+        date:      match.date,
+        time:      popup.querySelector('#pe-time').value || null,
+        opponent:  popup.querySelector('#pe-opponent').value || null,
+        location:  popup.querySelector('#pe-location').value,
+        venue:     match.venue || null,
+        pitch_id:  pitch_id ? parseInt(pitch_id) : null,
+        type:      match.type || 'spiel'
+      });
+      popup.remove();
+      renderWeek();
+    });
+    popup.querySelector('#pe-delete').addEventListener('click', async () => {
+      if (!confirm('Spiel löschen?')) return;
+      await api.delete(`/api/matches/${match.id}`);
+      popup.remove();
+      renderWeek();
+    });
+  } else {
+    popup.innerHTML = `
+      <button class="btn-close-popup">×</button>
+      <h4>🏆 ${match.team_name} vs. ${match.opponent || '?'}</h4>
+      <div class="popup-row"><span class="popup-label">Datum</span><span>${isoToDE(match.date)}</span></div>
+      <div class="popup-row"><span class="popup-label">Anstoß</span><span>${match.time ? match.time + ' Uhr' : '–'}</span></div>
+      <div class="popup-row"><span class="popup-label">Platz</span><span>${match.pitch_name || '–'}${match.half_pitch ? ' (halber Platz)' : ''}</span></div>
+    `;
+  }
+
   popup.querySelector('.btn-close-popup').addEventListener('click', () => popup.remove());
   document.body.appendChild(popup);
 
   const x = Math.min(event.clientX + 10, window.innerWidth  - 290);
-  const y = Math.min(event.clientY + 10, window.innerHeight - 160);
+  const y = Math.min(event.clientY + 10, window.innerHeight - (canEdit ? 280 : 160));
   popup.style.left = `${x}px`;
   popup.style.top  = `${y}px`;
   setTimeout(() => document.addEventListener('click', () => popup.remove(), { once: true }), 50);
