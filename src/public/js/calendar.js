@@ -462,6 +462,7 @@ function showMatchPopup(match, event) {
   }
 
   popup.querySelector('.btn-close-popup').addEventListener('click', () => popup.remove());
+  popup.addEventListener('click', e => e.stopPropagation());
   document.body.appendChild(popup);
 
   const x = Math.min(event.clientX + 10, window.innerWidth  - 290);
