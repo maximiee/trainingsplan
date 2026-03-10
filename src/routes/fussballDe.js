@@ -1,52 +1,81 @@
 const express = require('express');
+const cheerio = require('cheerio');
 const { requireAuth } = require('../middleware/auth');
 const router = express.Router();
 
-// GET /api/fussball-de/games/:teamId
-// Lädt kommende + vergangene Spiele von api-fussball.de
-router.get('/games/:teamId', requireAuth, async (req, res) => {
-  const token = process.env.FUSSBALL_DE_TOKEN;
-  if (!token) {
-    return res.status(503).json({ error: 'FUSSBALL_DE_TOKEN nicht konfiguriert. Bitte in .env eintragen.' });
+const BASE = 'https://www.fussball.de';
+
+async function fetchMatches(teamId, type) {
+  const url = `${BASE}/ajax.team.${type}.games/-/mode/PAGE/team-id/${teamId}`;
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0' }
+  });
+  if (!res.ok) throw new Error(`fussball.de ${type}: HTTP ${res.status}`);
+  const html = await res.text();
+  return parseMatchesHtml(html, teamId);
+}
+
+function parseMatchesHtml(html, ownTeamId) {
+  const $ = cheerio.load(html);
+  const matches = [];
+
+  // Datum/Zeit steht in tr.row-headline, danach folgen Spielzeilen mit .club-name
+  // Alle club-name Elemente kommen paarweise: [home, away, home, away, ...]
+  const clubNames = [];
+  $('.club-name').each((_, el) => clubNames.push($(el).text().trim()));
+
+  const headlines = [];
+  $('tr.row-headline').each((_, el) => {
+    headlines.push($(el).text().trim());
+  });
+
+  console.log(`[fussball.de] ${type || 'scrape'} – Headlines: ${headlines.length}, ClubNames: ${clubNames.length}`);
+  if (headlines.length > 0) console.log('[fussball.de] Beispiel-Headline:', headlines[0]);
+  if (clubNames.length > 0) console.log('[fussball.de] Beispiel-ClubNames:', clubNames.slice(0, 4));
+
+  // Jede Headline gilt für ein Spiel, club-names kommen paarweise
+  for (let i = 0; i < headlines.length; i++) {
+    const headline = headlines[i];
+    const homeTeam = clubNames[i * 2] || '';
+    const awayTeam = clubNames[i * 2 + 1] || '';
+
+    // Datum parsen: z.B. "Samstag, 21.03.2026 11:00 Uhr"
+    const dateMatch = headline.match(/(\d{2}\.\d{2}\.\d{4})/);
+    const timeMatch = headline.match(/(\d{2}:\d{2})/);
+
+    const dateStr = dateMatch ? dateMatch[1] : '';
+    const timeStr = timeMatch ? timeMatch[1] : '';
+
+    // DD.MM.YYYY → YYYY-MM-DD
+    let dateISO = '';
+    if (dateStr) {
+      const [d, m, y] = dateStr.split('.');
+      dateISO = `${y}-${m}-${d}`;
+    }
+
+    matches.push({ date: dateISO, time: timeStr, homeTeam, awayTeam });
   }
 
+  return matches;
+}
+
+// GET /api/fussball-de/games/:teamId
+router.get('/games/:teamId', requireAuth, async (req, res) => {
   const { teamId } = req.params;
-  const headers = { 'x-auth-token': token };
 
   try {
-    const [teamRes, nextRes, prevRes] = await Promise.all([
-      fetch(`https://api-fussball.de/api/team/${teamId}`, { headers }),
-      fetch(`https://api-fussball.de/api/team/next_games/${teamId}`, { headers }),
-      fetch(`https://api-fussball.de/api/team/prev_games/${teamId}`, { headers })
+    const [next, prev] = await Promise.all([
+      fetchMatches(teamId, 'next'),
+      fetchMatches(teamId, 'prev')
     ]);
 
-    const teamText = await teamRes.text();
-    const nextText = await nextRes.text();
-    const prevText = await prevRes.text();
-
-    console.log(`[fussball.de] team status=${teamRes.status} body=${teamText}`);
-    console.log(`[fussball.de] next_games status=${nextRes.status} body=${nextText}`);
-    console.log(`[fussball.de] prev_games status=${prevRes.status} body=${prevText}`);
-
-    if (nextRes.status === 401 || prevRes.status === 401) {
-      return res.status(401).json({ error: 'Ungültiger FUSSBALL_DE_TOKEN' });
-    }
-    if (!nextRes.ok || !prevRes.ok) {
-      return res.status(502).json({ error: `Fehler von api-fussball.de: next=${nextRes.status} prev=${prevRes.status}` });
-    }
-
-    const nextJson = JSON.parse(nextText);
-    const prevJson = JSON.parse(prevText);
-    const next = Array.isArray(nextJson) ? nextJson : (nextJson.data || []);
-    const prev = Array.isArray(prevJson) ? prevJson : (prevJson.data || []);
-
-    console.log(`[fussball.de] Spiele gefunden: next=${next.length} prev=${prev.length}`);
-    if (next.length > 0) console.log('[fussball.de] Beispiel next_game:', JSON.stringify(next[0]));
+    console.log(`[fussball.de] Ergebnis: next=${next.length} prev=${prev.length}`);
+    if (next.length > 0) console.log('[fussball.de] Erstes Spiel:', JSON.stringify(next[0]));
 
     res.json({ next, prev });
   } catch (err) {
     console.log(`[fussball.de] Fehler: ${err.message}`);
-    res.status(502).json({ error: `Verbindungsfehler: ${err.message}` });
+    res.status(502).json({ error: err.message });
   }
 });
 

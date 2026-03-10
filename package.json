@@ -13,6 +13,7 @@
   "dependencies": {
     "bcrypt": "^5.1.1",
     "better-sqlite3": "^9.4.3",
+    "cheerio": "^1.2.0",
     "connect-sqlite3": "^0.9.14",
     "dotenv": "^16.4.5",
     "exceljs": "^4.4.0",
