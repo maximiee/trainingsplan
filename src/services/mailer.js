@@ -33,16 +33,21 @@ function getTrainersForTeams(teamIds) {
 }
 
 async function sendMail(to, subject, html) {
-  if (!isConfigured()) return;
+  if (!isConfigured()) {
+    console.log('[Mailer] Nicht konfiguriert – Mail wird nicht gesendet');
+    return;
+  }
+  console.log(`[Mailer] Sende an: ${to} | Betreff: ${subject}`);
   try {
-    await getTransporter().sendMail({
+    const info = await getTransporter().sendMail({
       from: process.env.SMTP_FROM || process.env.SMTP_USER,
       to,
       subject,
       html
     });
+    console.log(`[Mailer] Erfolg: ${info.messageId}`);
   } catch (err) {
-    console.error('[Mailer] Fehler:', err.message);
+    console.error(`[Mailer] Fehler beim Senden an ${to}:`, err.message);
   }
 }
 
@@ -55,6 +60,7 @@ async function notifyMatchCreated(match, cancelledCount) {
   const team = db.prepare('SELECT name FROM teams WHERE id = ?').get(match.team_id);
   if (!team) return;
   const trainers = getTrainersForTeams([match.team_id]);
+  console.log(`[Mailer] notifyMatchCreated – Team: ${team.name}, Trainer gefunden: ${trainers.map(t => t.email).join(', ') || 'keine'}`);
   if (!trainers.length) return;
 
   const dateStr = deDE(match.date);
@@ -90,6 +96,7 @@ async function notifyTrainingReactivated(sessionId) {
   if (!teams.length) return;
 
   const trainers = getTrainersForTeams(teams.map(t => t.id));
+  console.log(`[Mailer] notifyTrainingReactivated – Teams: ${teams.map(t=>t.name).join(', ')}, Trainer gefunden: ${trainers.map(t => t.email).join(', ') || 'keine'}`);
   if (!trainers.length) return;
 
   const dateStr = deDE(session.date);
@@ -118,6 +125,7 @@ async function notifyTrainingCancelled(sessionId) {
   if (!teams.length) return;
 
   const trainers = getTrainersForTeams(teams.map(t => t.id));
+  console.log(`[Mailer] notifyTrainingCancelled – Teams: ${teams.map(t=>t.name).join(', ')}, Trainer gefunden: ${trainers.map(t => t.email).join(', ') || 'keine'}`);
   if (!trainers.length) return;
 
   const dateStr = deDE(session.date);
