@@ -297,6 +297,22 @@
           <input type="text" name="fussball_de_id" class="form-control" placeholder="Mannschafts-ID">
         </div>
       </div>
+      <div id="squad-section" class="hidden" style="margin-top:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <label style="margin:0;font-weight:600">Jahrgänge</label>
+          <button type="button" class="btn btn-sm btn-secondary" onclick="addAdminSquadRow()">+ Jahrgang hinzufügen</button>
+        </div>
+        <table style="width:100%">
+          <thead><tr>
+            <th style="width:100px">Anzahl</th>
+            <th style="width:140px">Geschlecht</th>
+            <th style="width:110px">Jahrgang</th>
+            <th style="width:50px"></th>
+          </tr></thead>
+          <tbody id="admin-squad-tbody"></tbody>
+        </table>
+        <div style="margin-top:8px;font-size:13px;color:var(--text-muted)" id="admin-squad-total"></div>
+      </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="document.getElementById('team-modal').classList.add('hidden')">Abbrechen</button>
         <button type="submit" class="btn btn-primary">Speichern</button>

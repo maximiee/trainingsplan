@@ -3,6 +3,7 @@ let adminUser = null;
 let allTeams = [];
 let allPitches = [];
 let allSeasons = [];
+let adminSquadState = []; // [{year, gender, count}] für das aktuell bearbeitete Team
 
 async function adminInit() {
   adminUser = await loadCurrentUser();
@@ -226,20 +227,66 @@ async function renderTeams() {
 window.openNewTeam = () => openTeamModal(null);
 window.openEditTeam = (id) => openTeamModal(allTeams.find(t => t.id === id));
 
-function openTeamModal(team) {
+async function openTeamModal(team) {
   const modal = document.getElementById('team-modal');
   const form = document.getElementById('team-form');
+  const squadSection = document.getElementById('squad-section');
   document.getElementById('team-modal-title').textContent = team ? 'Team bearbeiten' : 'Neues Team';
   form.reset();
   form.dataset.teamId = team ? team.id : '';
+  adminSquadState = [];
   if (team) {
     form.querySelector('[name=name]').value = team.name;
     form.querySelector('[name=age_group]').value = team.age_group || '';
     form.querySelector('[name=color]').value = team.color;
     form.querySelector('[name=fussball_de_id]').value = team.fussball_de_id || '';
+    const entries = await api.get(`/api/teams/${team.id}/squad`);
+    adminSquadState = entries.map(e => ({ ...e }));
+    squadSection.classList.remove('hidden');
+  } else {
+    squadSection.classList.add('hidden');
   }
+  renderAdminSquadRows();
   modal.classList.remove('hidden');
 }
+
+function renderAdminSquadRows() {
+  const tbody = document.getElementById('admin-squad-tbody');
+  if (!tbody) return;
+  if (adminSquadState.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:16px">Noch keine Jahrgänge eingetragen.</td></tr>';
+  } else {
+    tbody.innerHTML = adminSquadState.map((r, i) => `
+      <tr>
+        <td><input type="number" class="form-control" style="width:75px" value="${r.count}" min="0" max="999"
+          oninput="adminSquadState[${i}].count=parseInt(this.value)||0;updateAdminSquadTotal()"></td>
+        <td><select class="form-control" onchange="adminSquadState[${i}].gender=this.value">
+          <option value="m" ${r.gender==='m'?'selected':''}>Jungen</option>
+          <option value="w" ${r.gender==='w'?'selected':''}>Mädchen</option>
+        </select></td>
+        <td><input type="number" class="form-control" style="width:85px" value="${r.year}" min="1990" max="2030"
+          oninput="adminSquadState[${i}].year=parseInt(this.value)||0"></td>
+        <td><button type="button" class="btn btn-sm btn-danger" onclick="removeAdminSquadRow(${i})">✕</button></td>
+      </tr>`).join('');
+  }
+  updateAdminSquadTotal();
+}
+
+function updateAdminSquadTotal() {
+  const total = adminSquadState.reduce((s, r) => s + (parseInt(r.count) || 0), 0);
+  const el = document.getElementById('admin-squad-total');
+  if (el) el.textContent = total > 0 ? `Mannschaftsstärke: ${total} Spieler` : '';
+}
+
+window.addAdminSquadRow = () => {
+  adminSquadState.push({ year: new Date().getFullYear() - 10, gender: 'm', count: 0 });
+  renderAdminSquadRows();
+};
+
+window.removeAdminSquadRow = (index) => {
+  adminSquadState.splice(index, 1);
+  renderAdminSquadRows();
+};
 
 document.getElementById('team-form')?.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -252,8 +299,12 @@ document.getElementById('team-form')?.addEventListener('submit', async (e) => {
     fussball_de_id: form.querySelector('[name=fussball_de_id]').value
   };
   try {
-    if (id) await api.put(`/api/teams/${id}`, data);
-    else await api.post('/api/teams', data);
+    if (id) {
+      await api.put(`/api/teams/${id}`, data);
+      await api.put(`/api/teams/${id}/squad`, adminSquadState);
+    } else {
+      await api.post('/api/teams', data);
+    }
     document.getElementById('team-modal').classList.add('hidden');
     await renderTeams();
   } catch (err) {
