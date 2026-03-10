@@ -45,7 +45,7 @@ function cancelTrainingOnMatchDay(team_id, date) {
 
 // POST /api/matches
 router.post('/', requireAuth, requireActive, (req, res) => {
-  const { team_id, season_id, date, time, opponent, location, venue, pitch_id, fussball_de_match_id } = req.body;
+  const { team_id, season_id, date, time, opponent, location, venue, pitch_id, fussball_de_match_id, type } = req.body;
   if (!team_id || !date) {
     return res.status(400).json({ error: 'Team und Datum erforderlich' });
   }
@@ -60,10 +60,11 @@ router.post('/', requireAuth, requireActive, (req, res) => {
   }
 
   const halfPitch = req.body.half_pitch ? 1 : 0;
+  const matchType = (type === 'turnier') ? 'turnier' : 'spiel';
   const info = db.prepare(`
-    INSERT INTO match_appointments (team_id, season_id, date, time, opponent, location, venue, pitch_id, half_pitch, fussball_de_match_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(team_id, effectiveSeasonId, date, time || null, opponent || null, location || 'heim', venue || null, pitch_id || null, halfPitch, fussball_de_match_id || null);
+    INSERT INTO match_appointments (team_id, season_id, date, time, opponent, location, venue, pitch_id, half_pitch, fussball_de_match_id, type)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(team_id, effectiveSeasonId, date, time || null, opponent || null, location || 'heim', venue || null, pitch_id || null, halfPitch, fussball_de_match_id || null, matchType);
 
   const cancelled = halfPitch ? 0 : cancelTrainingOnMatchDay(parseInt(team_id), date);
   const newMatch = { team_id: parseInt(team_id), date, time: time || null, opponent: opponent || null, location: location || 'heim', venue: venue || null };
@@ -73,16 +74,17 @@ router.post('/', requireAuth, requireActive, (req, res) => {
 
 // PUT /api/matches/:id
 router.put('/:id', requireAuth, requireActive, (req, res) => {
-  const { team_id, date, time, opponent, location, venue, pitch_id } = req.body;
+  const { team_id, date, time, opponent, location, venue, pitch_id, type } = req.body;
   const match = db.prepare('SELECT team_id, date FROM match_appointments WHERE id = ?').get(parseInt(req.params.id));
   if (!match) return res.status(404).json({ error: 'Nicht gefunden' });
   if (!canTrainerEditMatch(req, match.team_id)) {
     return res.status(403).json({ error: 'Keine Berechtigung für dieses Team' });
   }
   const halfPitch = req.body.half_pitch ? 1 : 0;
+  const matchType = (type === 'turnier') ? 'turnier' : 'spiel';
   db.prepare(`
-    UPDATE match_appointments SET team_id = ?, date = ?, time = ?, opponent = ?, location = ?, venue = ?, pitch_id = ?, half_pitch = ? WHERE id = ?
-  `).run(team_id, date, time || null, opponent || null, location || 'heim', venue || null, pitch_id || null, halfPitch, parseInt(req.params.id));
+    UPDATE match_appointments SET team_id = ?, date = ?, time = ?, opponent = ?, location = ?, venue = ?, pitch_id = ?, half_pitch = ?, type = ? WHERE id = ?
+  `).run(team_id, date, time || null, opponent || null, location || 'heim', venue || null, pitch_id || null, halfPitch, matchType, parseInt(req.params.id));
 
   const cancelled = halfPitch ? 0 : cancelTrainingOnMatchDay(parseInt(team_id), date);
   res.json({ ok: true, cancelledTrainings: cancelled });

@@ -29,6 +29,9 @@ if (!columns.includes('pitch_id')) {
 if (!columns.includes('half_pitch')) {
   db.exec('ALTER TABLE match_appointments ADD COLUMN half_pitch INTEGER NOT NULL DEFAULT 0');
 }
+if (!columns.includes('type')) {
+  db.exec("ALTER TABLE match_appointments ADD COLUMN type TEXT NOT NULL DEFAULT 'spiel'");
+}
 
 // Grunddaten anlegen, falls Tabellen leer
 function seed() {

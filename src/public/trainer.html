@@ -95,13 +95,13 @@
   <div class="tab-content hidden" data-tab="matches">
     <div class="card">
       <div class="card-header">
-        <h2 class="card-title">Spiele <small style="font-weight:400;color:var(--text-muted)">(aktive Saison)</small></h2>
-        <button class="btn btn-primary" onclick="openNewMatchModal()">+ Neues Spiel</button>
+        <h2 class="card-title">Spiele & Turniere <small style="font-weight:400;color:var(--text-muted)">(aktive Saison)</small></h2>
+        <button class="btn btn-primary" onclick="openNewMatchModal()">+ Neuer Termin</button>
       </div>
       <div style="overflow-x:auto">
         <table>
           <thead><tr>
-            <th>Datum</th><th>Zeit</th><th>Mannschaft</th><th>Gegner</th><th>Platz</th><th>Aktionen</th>
+            <th>Typ</th><th>Datum</th><th>Zeit</th><th>Mannschaft</th><th>Gegner</th><th>Platz</th><th>Aktionen</th>
           </tr></thead>
           <tbody id="matches-tbody"></tbody>
         </table>
@@ -114,11 +114,18 @@
   </div>
 </div>
 
-<!-- Spiel Modal -->
+<!-- Spiel/Turnier Modal -->
 <div class="modal-overlay hidden" id="match-modal">
   <div class="modal" style="max-width:520px">
-    <h2 class="modal-title" id="match-modal-title">Neues Spiel</h2>
+    <h2 class="modal-title" id="match-modal-title">Neuer Termin</h2>
     <form id="match-form">
+      <div class="form-group">
+        <div style="display:flex;gap:8px">
+          <button type="button" class="btn btn-primary" id="match-type-btn-spiel" onclick="setMatchType('spiel')">Spiel</button>
+          <button type="button" class="btn btn-secondary" id="match-type-btn-turnier" onclick="setMatchType('turnier')">Turnier</button>
+        </div>
+        <input type="hidden" name="type" value="spiel">
+      </div>
       <div class="form-row">
         <div class="form-group">
           <label>Mannschaft *</label>
@@ -170,19 +177,9 @@
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label>Platz *</label>
-          <select name="pitch_id" class="form-control"></select>
-        </div>
-        <div class="form-group">
-          <label>Typ *</label>
-          <select name="type" class="form-control">
-            <option value="training">Training</option>
-            <option value="spiel">Spiel</option>
-            <option value="turnier">Turnier</option>
-          </select>
-        </div>
+      <div class="form-group">
+        <label>Platz *</label>
+        <select name="pitch_id" class="form-control"></select>
       </div>
 
       <!-- Periodisch: Wochentag + Von/Bis -->

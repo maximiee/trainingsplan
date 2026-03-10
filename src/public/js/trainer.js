@@ -260,7 +260,6 @@ async function submitNewSession(e) {
   const teamIds = [...form.querySelectorAll('[name=teamId]:checked')].map(el => parseInt(el.value));
   const activeSeason = allSeasons.find(s => s.is_active) || allSeasons[0];
 
-  const type = form.querySelector('[name=type]').value;
   try {
     if (currentSessionMode === 'recurring') {
       const weekday = parseInt(form.querySelector('[name=weekday]').value);
@@ -272,7 +271,7 @@ async function submitNewSession(e) {
         date:        validFrom,
         start_time:  form.querySelector('[name=start_time]').value,
         end_time:    form.querySelector('[name=end_time]').value,
-        type,
+        type:        'training',
         teamIds,
         recurring:   true,
         weekday,
@@ -288,7 +287,7 @@ async function submitNewSession(e) {
         date:       singleDate,
         start_time: form.querySelector('[name=start_time]').value,
         end_time:   form.querySelector('[name=end_time]').value,
-        type,
+        type:       'training',
         teamIds,
         recurring:  false
       });
@@ -327,7 +326,14 @@ window.deleteSingleSession = async (id) => {
   await renderSessions();
 };
 
-// ── Spiele ────────────────────────────────────────────────────
+// ── Spiele & Turniere ─────────────────────────────────────────
+window.setMatchType = (type) => {
+  document.getElementById('match-form').querySelector('[name=type]').value = type;
+  document.getElementById('match-type-btn-spiel').className   = type === 'spiel'   ? 'btn btn-primary' : 'btn btn-secondary';
+  document.getElementById('match-type-btn-turnier').className = type === 'turnier' ? 'btn btn-primary' : 'btn btn-secondary';
+};
+
+
 async function renderMatches() {
   const activeSeason = allSeasons.find(s => s.is_active) || allSeasons[0];
   if (!activeSeason) return;
@@ -345,9 +351,13 @@ async function renderMatches() {
   }
 
   for (const m of matches) {
+    const typeBadge = m.type === 'turnier'
+      ? '<span class="badge badge-turnier">Turnier</span>'
+      : '<span class="badge badge-spiel">Spiel</span>';
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${m.date}</td>
+      <td>${typeBadge}</td>
+      <td>${isoToDE(m.date)}</td>
       <td>${m.time || '–'}</td>
       <td><span class="color-dot" style="background:${m.team_color}"></span>${m.team_name}</td>
       <td>${m.opponent || '–'}</td>
@@ -374,8 +384,9 @@ window.openNewMatchModal = () => {
   buildMatchForm();
   const form = document.getElementById('match-form');
   form.dataset.matchId = '';
-  document.getElementById('match-modal-title').textContent = 'Neues Spiel';
+  document.getElementById('match-modal-title').textContent = 'Neuer Termin';
   form.reset();
+  setMatchType('spiel');
   form.onsubmit = submitNewMatch;
   document.getElementById('match-modal').classList.remove('hidden');
 };
@@ -389,7 +400,8 @@ window.openEditMatchModal = async (id) => {
 
   const form = document.getElementById('match-form');
   form.dataset.matchId = id;
-  document.getElementById('match-modal-title').textContent = 'Spiel bearbeiten';
+  document.getElementById('match-modal-title').textContent = 'Termin bearbeiten';
+  setMatchType(m.type || 'spiel');
   form.querySelector('[name=team_id]').value      = m.team_id;
   form.querySelector('[name=date]').value          = m.date;
   form.querySelector('[name=time]').value          = m.time || '';
@@ -406,18 +418,19 @@ async function submitNewMatch(e) {
   const activeSeason = allSeasons.find(s => s.is_active) || allSeasons[0];
   try {
     const result = await api.post('/api/matches', {
-      season_id: activeSeason.id,
-      team_id:   parseInt(form.querySelector('[name=team_id]').value),
-      date:      form.querySelector('[name=date]').value,
-      time:      form.querySelector('[name=time]').value || null,
+      season_id:  activeSeason.id,
+      team_id:    parseInt(form.querySelector('[name=team_id]').value),
+      date:       form.querySelector('[name=date]').value,
+      time:       form.querySelector('[name=time]').value || null,
       pitch_id:   parseInt(form.querySelector('[name=pitch_id]').value) || null,
       opponent:   form.querySelector('[name=opponent]').value || null,
       half_pitch: form.querySelector('[name=half_pitch]').checked,
-      location:   'heim'
+      location:   'heim',
+      type:       form.querySelector('[name=type]').value
     });
     document.getElementById('match-modal').classList.add('hidden');
     if (result.cancelledTrainings > 0) {
-      alert(`Spiel gespeichert. ${result.cancelledTrainings} Training(s) an diesem Tag wurden abgesagt.`);
+      alert(`Termin gespeichert. ${result.cancelledTrainings} Training(s) an diesem Tag wurden abgesagt.`);
     }
     await renderMatches();
   } catch (err) { alert(err.message); }
@@ -435,11 +448,12 @@ async function submitEditMatch(e) {
       pitch_id:   parseInt(form.querySelector('[name=pitch_id]').value) || null,
       opponent:   form.querySelector('[name=opponent]').value || null,
       half_pitch: form.querySelector('[name=half_pitch]').checked,
-      location:   'heim'
+      location:   'heim',
+      type:       form.querySelector('[name=type]').value
     });
     document.getElementById('match-modal').classList.add('hidden');
     if (result.cancelledTrainings > 0) {
-      alert(`Spiel gespeichert. ${result.cancelledTrainings} Training(s) an diesem Tag wurden abgesagt.`);
+      alert(`Termin gespeichert. ${result.cancelledTrainings} Training(s) an diesem Tag wurden abgesagt.`);
     }
     await renderMatches();
   } catch (err) { alert(err.message); }
