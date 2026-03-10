@@ -34,6 +34,7 @@
     <button class="admin-tab" data-tab="matches">🏆 Spieltermine</button>
     <button class="admin-tab" data-tab="profile">👤 Profil</button>
     <button class="admin-tab" data-tab="import">📥 Import</button>
+    <button class="admin-tab" data-tab="overview">📊 Kader-Übersicht</button>
   </div>
 
   <!-- ===== BENUTZER ===== -->
@@ -141,6 +142,32 @@
             <th>Datum</th><th>Uhrzeit</th><th>Team</th><th>Gegner</th><th>Platz</th><th>Aktionen</th>
           </tr></thead>
           <tbody id="matches-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== KADER-ÜBERSICHT ===== -->
+  <div class="tab-content hidden" data-tab="overview">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Kader-Übersicht</h2>
+        <button class="btn btn-secondary" onclick="printSquadOverview()">🖨️ Drucken</button>
+      </div>
+      <div style="overflow-x:auto" id="squad-overview-wrap">
+        <table id="squad-overview-table">
+          <thead>
+            <tr>
+              <th>Mannschaft</th>
+              <th>Trainer</th>
+              <th>Jahrgang</th>
+              <th style="text-align:center">Jungen</th>
+              <th style="text-align:center">Mädchen</th>
+              <th style="text-align:center">Gesamt</th>
+            </tr>
+          </thead>
+          <tbody id="squad-overview-tbody"></tbody>
+          <tfoot id="squad-overview-tfoot"></tfoot>
         </table>
       </div>
     </div>

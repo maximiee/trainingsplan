@@ -22,6 +22,31 @@ router.get('/all', requireAuth, requireAdmin, (req, res) => {
   res.json(teams);
 });
 
+// GET /api/teams/overview – Kader-Übersicht aller aktiven Teams mit Trainern und Spielerzahlen
+router.get('/overview', requireAuth, requireAdmin, (req, res) => {
+  const teams = db.prepare('SELECT * FROM teams WHERE is_active = 1 ORDER BY age_group, name').all();
+
+  const result = teams.map(team => {
+    const trainers = db.prepare(`
+      SELECT u.name FROM user_teams ut
+      JOIN users u ON u.id = ut.user_id
+      WHERE ut.team_id = ? AND u.is_active = 1
+      ORDER BY u.name
+    `).all(team.id).map(u => u.name);
+
+    const squad = db.prepare(
+      'SELECT year, gender, count FROM team_squad WHERE team_id = ? ORDER BY year DESC, gender'
+    ).all(team.id);
+
+    const total_m = squad.filter(s => s.gender === 'm').reduce((a, b) => a + b.count, 0);
+    const total_w = squad.filter(s => s.gender === 'w').reduce((a, b) => a + b.count, 0);
+
+    return { ...team, trainers, squad, total_m, total_w, total: total_m + total_w };
+  });
+
+  res.json(result);
+});
+
 // POST /api/teams
 router.post('/', requireAuth, requireAdmin, (req, res) => {
   const { name, age_group, color, fussball_de_id } = req.body;

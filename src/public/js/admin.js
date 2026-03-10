@@ -37,6 +37,7 @@ async function adminInit() {
   setupSessionForm();
   setupMatchForm();
   setupProfileForm();
+  await renderSquadOverview();
 }
 
 // --- Tabs ---
@@ -749,5 +750,120 @@ document.getElementById('btn-run-import')?.addEventListener('click', async () =>
     btn.textContent = 'Mannschaften & Einheiten importieren';
   }
 });
+
+// ── Kader-Übersicht ───────────────────────────────────────────
+async function renderSquadOverview() {
+  const tbody = document.getElementById('squad-overview-tbody');
+  const tfoot = document.getElementById('squad-overview-tfoot');
+  if (!tbody) return;
+
+  const teams = await api.get('/api/teams/overview');
+  tbody.innerHTML = '';
+  tfoot.innerHTML = '';
+
+  let grandTotal_m = 0;
+  let grandTotal_w = 0;
+
+  for (const team of teams) {
+    const trainers = team.trainers.length ? team.trainers.join(', ') : '–';
+    const colorDot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${team.color};margin-right:7px;vertical-align:middle;flex-shrink:0"></span>`;
+
+    grandTotal_m += team.total_m;
+    grandTotal_w += team.total_w;
+
+    if (team.squad.length === 0) {
+      // Team ohne Kaderdaten: eine leere Zeile
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><div style="display:flex;align-items:center">${colorDot}<strong>${team.name}</strong></div></td>
+        <td>${trainers}</td>
+        <td style="color:var(--text-muted)">–</td>
+        <td style="text-align:center;color:var(--text-muted)">–</td>
+        <td style="text-align:center;color:var(--text-muted)">–</td>
+        <td style="text-align:center;color:var(--text-muted)">–</td>
+      `;
+      tbody.appendChild(tr);
+      continue;
+    }
+
+    // Jahrgänge zusammenfassen: pro year einen Eintrag mit m+w
+    const byYear = {};
+    for (const s of team.squad) {
+      if (!byYear[s.year]) byYear[s.year] = { m: 0, w: 0 };
+      byYear[s.year][s.gender] += s.count;
+    }
+    const years = Object.keys(byYear).sort((a, b) => b - a);
+
+    years.forEach((year, i) => {
+      const { m, w } = byYear[year];
+      const tr = document.createElement('tr');
+      if (i === 0) {
+        // Erste Zeile: Team-Name und Trainer mit rowspan
+        const totalRows = years.length + 1; // +1 für die Summenzeile
+        tr.innerHTML = `
+          <td rowspan="${totalRows}" style="vertical-align:top;padding-top:10px">
+            <div style="display:flex;align-items:flex-start;gap:4px">${colorDot}<strong>${team.name}</strong></div>
+          </td>
+          <td rowspan="${totalRows}" style="vertical-align:top;padding-top:10px">${trainers}</td>
+          <td>${year}</td>
+          <td style="text-align:center">${m || '–'}</td>
+          <td style="text-align:center">${w || '–'}</td>
+          <td style="text-align:center">${m + w}</td>
+        `;
+      } else {
+        tr.innerHTML = `
+          <td>${year}</td>
+          <td style="text-align:center">${m || '–'}</td>
+          <td style="text-align:center">${w || '–'}</td>
+          <td style="text-align:center">${m + w}</td>
+        `;
+      }
+      tbody.appendChild(tr);
+    });
+
+    // Summenzeile pro Team
+    const sumTr = document.createElement('tr');
+    sumTr.style.background = 'var(--bg-secondary)';
+    sumTr.innerHTML = `
+      <td style="font-weight:600;color:var(--text-muted);font-size:12px">Gesamt</td>
+      <td style="text-align:center;font-weight:600">${team.total_m || '–'}</td>
+      <td style="text-align:center;font-weight:600">${team.total_w || '–'}</td>
+      <td style="text-align:center;font-weight:700">${team.total}</td>
+    `;
+    tbody.appendChild(sumTr);
+  }
+
+  // Gesamtsumme aller Teams
+  tfoot.innerHTML = `
+    <tr style="background:var(--primary-light,#e8f0fe);font-weight:700">
+      <td colspan="3" style="text-align:right;padding-right:12px">Alle Mannschaften:</td>
+      <td style="text-align:center">${grandTotal_m}</td>
+      <td style="text-align:center">${grandTotal_w}</td>
+      <td style="text-align:center">${grandTotal_m + grandTotal_w}</td>
+    </tr>
+  `;
+}
+
+window.printSquadOverview = () => {
+  const content = document.getElementById('squad-overview-wrap').outerHTML;
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="de"><head>
+    <meta charset="UTF-8">
+    <title>Kader-Übersicht</title>
+    <style>
+      body { font-family: Arial, sans-serif; font-size: 13px; padding: 20px; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #ccc; padding: 6px 10px; }
+      th { background: #f0f0f0; font-weight: 600; }
+      tfoot tr td { background: #dde6fb; font-weight: 700; }
+      tr[style*="background"] td { background: #f8f8f8; }
+    </style>
+  </head><body>
+    <h2 style="margin-bottom:12px">Kader-Übersicht</h2>
+    ${content}
+  </body></html>`);
+  win.document.close();
+  win.print();
+};
 
 document.addEventListener('DOMContentLoaded', adminInit);
