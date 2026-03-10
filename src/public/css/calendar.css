@@ -445,6 +445,12 @@ body {
   .pitch-name-short { display: inline; }
   /* Tages-Header etwas kompakter */
   .cal-day-label { font-size: 11px; padding: 4px 2px; }
+  /* Mo–Fr / Sa–So Toggle überflüssig auf Mobile (alle 7 Tage sichtbar) */
+  .view-toggle { display: none; }
+  /* Export-Buttons auf Mobile ausblenden */
+  #btn-export-pdf,
+  #btn-export-excel-week,
+  #btn-export-excel-season { display: none; }
 
   /* Horizontales Scrollen: nur Header clippen, Body-Scroll unverändert */
   .cal-head,

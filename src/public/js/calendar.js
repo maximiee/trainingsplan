@@ -14,10 +14,19 @@ const VIEW_CONFIG = {
     startHour:  10,
     endHour:    23,
     label:      'Wochenende'
+  },
+  full: {
+    dayIndices: [0, 1, 2, 3, 4, 5, 6], // Mo–So
+    startHour:  10,
+    endHour:    23,
+    label:      'Ganze Woche'
   }
 };
 
-function getConfig() { return VIEW_CONFIG[viewMode]; }
+function getConfig() {
+  if (window.innerWidth <= 600) return VIEW_CONFIG.full;
+  return VIEW_CONFIG[viewMode];
+}
 function totalSlots() { const c = getConfig(); return (c.endHour - c.startHour) * 2; }
 function totalHeight() { return SLOT_HEIGHT * totalSlots(); }
 
