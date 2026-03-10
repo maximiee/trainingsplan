@@ -29,7 +29,7 @@ function parseMatchesHtml(html, ownTeamId) {
     headlines.push($(el).text().trim());
   });
 
-  console.log(`[fussball.de] ${type || 'scrape'} – Headlines: ${headlines.length}, ClubNames: ${clubNames.length}`);
+  console.log(`[fussball.de] Headlines: ${headlines.length}, ClubNames: ${clubNames.length}`);
   if (headlines.length > 0) console.log('[fussball.de] Beispiel-Headline:', headlines[0]);
   if (clubNames.length > 0) console.log('[fussball.de] Beispiel-ClubNames:', clubNames.slice(0, 4));
 
