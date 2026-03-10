@@ -18,4 +18,5 @@ services:
       - SMTP_USER=${SMTP_USER}
       - SMTP_PASS=${SMTP_PASS}
       - SMTP_FROM=${SMTP_FROM}
+      - FUSSBALL_DE_TOKEN=${FUSSBALL_DE_TOKEN}
     restart: unless-stopped
