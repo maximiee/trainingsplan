@@ -422,7 +422,9 @@ function showSessionPopup(session, event) {
     ${session.is_cancelled ? '<div style="color:var(--danger);margin-top:6px;font-size:12px">⚫ Abgesagt</div>' : ''}
     <div class="popup-actions">
       <button class="btn btn-sm btn-danger" data-del="${session.id}">Löschen</button>
-      ${session.is_cancelled ? '' : `<button class="btn btn-sm btn-warning" data-cancel="${session.id}">Absagen</button>`}
+      ${session.is_cancelled
+        ? `<button class="btn btn-sm btn-success" data-uncancel="${session.id}">Wieder ansetzen</button>`
+        : `<button class="btn btn-sm btn-warning" data-cancel="${session.id}">Absagen</button>`}
     </div>
   `;
 
@@ -436,6 +438,11 @@ function showSessionPopup(session, event) {
   });
   popup.querySelector('[data-cancel]')?.addEventListener('click', async () => {
     await api.put(`/api/sessions/${session.id}`, { is_cancelled: 1 });
+    popup.remove();
+    renderWeek();
+  });
+  popup.querySelector('[data-uncancel]')?.addEventListener('click', async () => {
+    await api.put(`/api/sessions/${session.id}`, { is_cancelled: 0 });
     popup.remove();
     renderWeek();
   });
