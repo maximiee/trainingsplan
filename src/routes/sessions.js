@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db/database');
 const { requireAuth, requireActive } = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/roleCheck');
+const { notifyTrainingCancelled } = require('../services/mailer');
 const router = express.Router();
 
 // GET /api/sessions?start=YYYY-MM-DD&end=YYYY-MM-DD&season_id=X
@@ -210,6 +211,8 @@ router.put('/:id', requireAuth, requireActive, (req, res) => {
     return res.status(400).json({ error: 'Startzeit muss vor Endzeit liegen' });
   }
 
+  const wasNotCancelled = db.prepare('SELECT is_cancelled FROM training_sessions WHERE id = ?').get(id);
+
   db.prepare(`
     UPDATE training_sessions
     SET pitch_id = COALESCE(?, pitch_id),
@@ -227,6 +230,10 @@ router.put('/:id', requireAuth, requireActive, (req, res) => {
     db.prepare('DELETE FROM session_teams WHERE session_id = ?').run(id);
     const insert = db.prepare('INSERT OR IGNORE INTO session_teams (session_id, team_id) VALUES (?, ?)');
     for (const tid of teamIds) insert.run(id, tid);
+  }
+
+  if (is_cancelled === 1 && wasNotCancelled && wasNotCancelled.is_cancelled === 0) {
+    notifyTrainingCancelled(id).catch(() => {});
   }
 
   res.json({ ok: true });

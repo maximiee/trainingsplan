@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('../db/database');
 const { requireAuth, requireActive } = require('../middleware/auth');
 const { requireAdmin } = require('../middleware/roleCheck');
+const { notifyMatchCreated } = require('../services/mailer');
 const router = express.Router();
 
 // GET /api/matches?season_id=X&team_id=Y
@@ -65,6 +66,8 @@ router.post('/', requireAuth, requireActive, (req, res) => {
   `).run(team_id, effectiveSeasonId, date, time || null, opponent || null, location || 'heim', venue || null, pitch_id || null, halfPitch, fussball_de_match_id || null);
 
   const cancelled = halfPitch ? 0 : cancelTrainingOnMatchDay(parseInt(team_id), date);
+  const newMatch = { team_id: parseInt(team_id), date, time: time || null, opponent: opponent || null, location: location || 'heim', venue: venue || null };
+  notifyMatchCreated(newMatch, cancelled).catch(() => {});
   res.status(201).json({ id: info.lastInsertRowid, cancelledTrainings: cancelled });
 });
 
