@@ -83,6 +83,17 @@ router.post('/:id/activate', requireAuth, requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+// GET /api/teams/squad-aggregate – alle Kaderdaten nach Jahrgang+Geschlecht summiert (für Projektion)
+router.get('/squad-aggregate', requireAuth, requireAdmin, (req, res) => {
+  const rows = db.prepare(`
+    SELECT year, gender, SUM(count) AS count
+    FROM team_squad
+    GROUP BY year, gender
+    ORDER BY year, gender
+  `).all();
+  res.json(rows);
+});
+
 // GET /api/teams/:id/squad – Kader eines Teams
 router.get('/:id/squad', requireAuth, (req, res) => {
   const teamId = parseInt(req.params.id);

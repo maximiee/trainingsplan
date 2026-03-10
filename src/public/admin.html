@@ -149,9 +149,11 @@
 
   <!-- ===== KADER-ÜBERSICHT ===== -->
   <div class="tab-content hidden" data-tab="overview">
-    <div class="card">
+
+    <!-- Aktuelle Kader (per Mannschaft) -->
+    <div class="card" style="margin-bottom:20px">
       <div class="card-header">
-        <h2 class="card-title">Kader-Übersicht</h2>
+        <h2 class="card-title">Aktuelle Kader</h2>
         <button class="btn btn-secondary" onclick="printSquadOverview()">🖨️ Drucken</button>
       </div>
       <div style="overflow-x:auto" id="squad-overview-wrap">
@@ -169,6 +171,36 @@
           <tbody id="squad-overview-tbody"></tbody>
           <tfoot id="squad-overview-tfoot"></tfoot>
         </table>
+      </div>
+    </div>
+
+    <!-- Altersklassen-Projektion -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Altersklassen-Projektion</h2>
+        <div style="display:flex;align-items:center;gap:10px">
+          <label style="font-size:13px;font-weight:500">Spielzeit:</label>
+          <select id="projection-season-select" class="form-control" style="width:auto" onchange="renderProjection()"></select>
+          <button class="btn btn-secondary" onclick="printProjection()">🖨️ Drucken</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto" id="projection-wrap">
+        <table id="projection-table">
+          <thead>
+            <tr>
+              <th>Altersklasse</th>
+              <th style="text-align:center">Jahrgang</th>
+              <th style="text-align:center">Jungen</th>
+              <th style="text-align:center">Mädchen</th>
+              <th style="text-align:center">Gesamt</th>
+            </tr>
+          </thead>
+          <tbody id="projection-tbody"></tbody>
+          <tfoot id="projection-tfoot"></tfoot>
+        </table>
+      </div>
+      <div style="padding:10px 16px;font-size:12px;color:var(--text-muted);border-top:1px solid var(--border)">
+        Die Projektion basiert auf den von Trainern eingetragenen Spielerzahlen. Jahrgänge ohne Einträge werden als 0 gewertet.
       </div>
     </div>
   </div>

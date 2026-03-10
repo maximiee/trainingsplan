@@ -751,11 +751,146 @@ document.getElementById('btn-run-import')?.addEventListener('click', async () =>
   }
 });
 
+// ── Altersklassen-Projektion ──────────────────────────────────
+// Altersklassen-Mapping: Basis-Jahrgänge für Spielzeit 2024/25
+const PROJECTION_BASE_YEAR = 2024;
+const PROJECTION_SEASONS = Array.from({ length: 11 }, (_, i) => PROJECTION_BASE_YEAR + i);
+const AGE_CLASSES = [
+  { name: 'G-Junioren', baseYears: [2018, 2019] },
+  { name: 'F-Junioren', baseYears: [2016, 2017] },
+  { name: 'E-Junioren', baseYears: [2014, 2015] },
+  { name: 'D-Junioren', baseYears: [2012, 2013] },
+  { name: 'C-Junioren', baseYears: [2010, 2011] },
+  { name: 'B-Junioren', baseYears: [2008, 2009] },
+  { name: 'A-Junioren', baseYears: [2006, 2007] },
+];
+
+let squadAggregate = []; // [{year, gender, count}]
+
+function seasonLabel(startYear) {
+  return `${startYear}/${String(startYear + 1).slice(-2)}`;
+}
+
+function initProjectionSeasonSelect() {
+  const sel = document.getElementById('projection-season-select');
+  if (!sel) return;
+  sel.innerHTML = PROJECTION_SEASONS.map(y =>
+    `<option value="${y}">${seasonLabel(y)}</option>`
+  ).join('');
+  // Standard: aktuelle Spielzeit anhand Jahr
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth(); // 0-indexed; Saison wechselt ~Juli
+  const currentSeason = currentMonth >= 6 ? currentYear : currentYear - 1;
+  const defaultYear = Math.max(PROJECTION_BASE_YEAR, Math.min(currentSeason, PROJECTION_BASE_YEAR + 10));
+  sel.value = defaultYear;
+}
+
+window.renderProjection = function() {
+  const sel = document.getElementById('projection-season-select');
+  const seasonStart = parseInt(sel.value);
+  const offset = seasonStart - PROJECTION_BASE_YEAR;
+
+  // yearMap aufbauen: year → {m, w}
+  const yearMap = {};
+  for (const row of squadAggregate) {
+    if (!yearMap[row.year]) yearMap[row.year] = { m: 0, w: 0 };
+    yearMap[row.year][row.gender] += row.count;
+  }
+
+  const tbody = document.getElementById('projection-tbody');
+  const tfoot = document.getElementById('projection-tfoot');
+  tbody.innerHTML = '';
+  let grandM = 0, grandW = 0;
+
+  for (const cls of AGE_CLASSES) {
+    const years = cls.baseYears.map(y => y + offset);
+    const rowspan = years.length + 1; // Jahrgänge + Summenzeile
+
+    years.forEach((year, i) => {
+      const sq = yearMap[year] || { m: 0, w: 0 };
+      const tr = document.createElement('tr');
+      if (i === 0) {
+        tr.innerHTML = `
+          <td rowspan="${rowspan}" style="vertical-align:top;padding-top:10px;font-weight:600">${cls.name}</td>
+          <td style="text-align:center">${year}</td>
+          <td style="text-align:center">${sq.m || '–'}</td>
+          <td style="text-align:center">${sq.w || '–'}</td>
+          <td style="text-align:center">${sq.m + sq.w || '–'}</td>
+        `;
+      } else {
+        tr.innerHTML = `
+          <td style="text-align:center">${year}</td>
+          <td style="text-align:center">${sq.m || '–'}</td>
+          <td style="text-align:center">${sq.w || '–'}</td>
+          <td style="text-align:center">${sq.m + sq.w || '–'}</td>
+        `;
+      }
+      tbody.appendChild(tr);
+    });
+
+    // Summe pro Altersklasse
+    const totalM = years.reduce((s, y) => s + (yearMap[y]?.m || 0), 0);
+    const totalW = years.reduce((s, y) => s + (yearMap[y]?.w || 0), 0);
+    grandM += totalM;
+    grandW += totalW;
+
+    const sumTr = document.createElement('tr');
+    sumTr.style.background = 'var(--bg-secondary)';
+    sumTr.innerHTML = `
+      <td style="font-size:12px;font-weight:600;color:var(--text-muted);text-align:center">Gesamt</td>
+      <td style="text-align:center;font-weight:700">${totalM || '–'}</td>
+      <td style="text-align:center;font-weight:700">${totalW || '–'}</td>
+      <td style="text-align:center;font-weight:700">${totalM + totalW || '–'}</td>
+    `;
+    tbody.appendChild(sumTr);
+  }
+
+  tfoot.innerHTML = `
+    <tr style="background:var(--primary-light,#e8f0fe);font-weight:700">
+      <td colspan="2" style="text-align:right;padding-right:12px">Alle Altersklassen:</td>
+      <td style="text-align:center">${grandM}</td>
+      <td style="text-align:center">${grandW}</td>
+      <td style="text-align:center">${grandM + grandW}</td>
+    </tr>
+  `;
+};
+
+window.printProjection = () => {
+  const sel = document.getElementById('projection-season-select');
+  const label = seasonLabel(parseInt(sel.value));
+  const content = document.getElementById('projection-wrap').outerHTML;
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="de"><head>
+    <meta charset="UTF-8">
+    <title>Altersklassen-Projektion ${label}</title>
+    <style>
+      body { font-family: Arial, sans-serif; font-size: 13px; padding: 20px; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #ccc; padding: 6px 10px; }
+      th { background: #f0f0f0; font-weight: 600; }
+      tfoot tr td { background: #dde6fb; font-weight: 700; }
+    </style>
+  </head><body>
+    <h2 style="margin-bottom:4px">Altersklassen-Projektion</h2>
+    <p style="color:#666;font-size:12px;margin-bottom:12px">Spielzeit ${label}</p>
+    ${content}
+  </body></html>`);
+  win.document.close();
+  win.print();
+};
+
 // ── Kader-Übersicht ───────────────────────────────────────────
 async function renderSquadOverview() {
   const tbody = document.getElementById('squad-overview-tbody');
   const tfoot = document.getElementById('squad-overview-tfoot');
   if (!tbody) return;
+
+  // Projektionsdaten laden und initialisieren
+  [squadAggregate] = await Promise.all([
+    api.get('/api/teams/squad-aggregate')
+  ]);
+  initProjectionSeasonSelect();
+  renderProjection();
 
   const teams = await api.get('/api/teams/overview');
   tbody.innerHTML = '';
