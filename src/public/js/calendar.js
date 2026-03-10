@@ -562,6 +562,7 @@ function openCalSessionModal() {
   // Platz-Select befüllen
   const pitchSel = form.querySelector('[name=pitch_id]');
   pitchSel.innerHTML = pitches.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  form.querySelector('[name=type]').value = 'training';
 
   // Zeitslots befüllen
   ['start_time', 'end_time'].forEach(field => {
@@ -606,6 +607,7 @@ function openCalSessionModal() {
     const teamIds = [...form.querySelectorAll('[name=teamIds]:checked')].map(el => parseInt(el.value));
 
     let data;
+    const type = form.querySelector('[name=type]').value;
     if (calSessionMode === 'recurring') {
       const weekday   = parseInt(form.querySelector('[name=weekday]').value);
       const validFrom = form.querySelector('[name=valid_from]').value;
@@ -615,7 +617,7 @@ function openCalSessionModal() {
         date:        validFrom,
         start_time:  form.querySelector('[name=start_time]').value,
         end_time:    form.querySelector('[name=end_time]').value,
-        type:        'training',
+        type,
         teamIds,
         recurring:   true,
         weekday,
@@ -630,7 +632,7 @@ function openCalSessionModal() {
         date:       singleDate,
         start_time: form.querySelector('[name=start_time]').value,
         end_time:   form.querySelector('[name=end_time]').value,
-        type:       'training',
+        type,
         teamIds,
         recurring:  false
       };

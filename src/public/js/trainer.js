@@ -260,6 +260,7 @@ async function submitNewSession(e) {
   const teamIds = [...form.querySelectorAll('[name=teamId]:checked')].map(el => parseInt(el.value));
   const activeSeason = allSeasons.find(s => s.is_active) || allSeasons[0];
 
+  const type = form.querySelector('[name=type]').value;
   try {
     if (currentSessionMode === 'recurring') {
       const weekday = parseInt(form.querySelector('[name=weekday]').value);
@@ -271,7 +272,7 @@ async function submitNewSession(e) {
         date:        validFrom,
         start_time:  form.querySelector('[name=start_time]').value,
         end_time:    form.querySelector('[name=end_time]').value,
-        type:        'training',
+        type,
         teamIds,
         recurring:   true,
         weekday,
@@ -287,7 +288,7 @@ async function submitNewSession(e) {
         date:       singleDate,
         start_time: form.querySelector('[name=start_time]').value,
         end_time:   form.querySelector('[name=end_time]').value,
-        type:       'training',
+        type,
         teamIds,
         recurring:  false
       });
