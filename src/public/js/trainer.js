@@ -107,15 +107,20 @@ async function renderSessions() {
   const activeSeason = allSeasons.find(s => s.is_active) || allSeasons[0];
   if (!activeSeason) return;
 
-  const allRecs  = await api.get(`/api/sessions/recurrences?season_id=${activeSeason.id}`);
+  const myTeamIds = (currentUser.teams || []).map(t => t.id);
+  const [allRecs, allSessionsList] = await Promise.all([
+    api.get(`/api/sessions/recurrences?season_id=${activeSeason.id}`),
+    api.get(`/api/sessions?season_id=${activeSeason.id}`)
+  ]);
+
+  const recs    = allRecs.filter(r => r.teams?.some(t => myTeamIds.includes(t.id)));
+  const singles = allSessionsList.filter(s => !s.recurrence_id && s.teams?.some(t => myTeamIds.includes(t.id)));
+
   const tbody = document.getElementById('sessions-tbody');
   tbody.innerHTML = '';
 
-  const myTeamIds = (currentUser.teams || []).map(t => t.id);
-  const recs = allRecs.filter(r => r.teams?.some(t => myTeamIds.includes(t.id)));
-
-  if (recs.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">Keine Einheiten – bitte zuerst im Profil eine Mannschaft auswählen.</td></tr>';
+  if (recs.length === 0 && singles.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">Keine Einheiten – bitte zuerst im Profil eine Mannschaft auswählen.</td></tr>';
     return;
   }
 
@@ -123,7 +128,8 @@ async function renderSessions() {
     const teams = r.teams?.map(t => `<span class="color-dot" style="background:${t.color};margin-right:2px"></span>${t.name}`).join(', ') || '–';
     const tr    = document.createElement('tr');
     tr.innerHTML = `
-      <td>${DAYS[r.weekday]}</td>
+      <td><span class="badge badge-recurring">Periodisch</span></td>
+      <td>${DAYS[r.weekday]}<br><small style="color:var(--text-muted)">${isoToDE(r.valid_from)} – ${isoToDE(r.valid_until)}</small></td>
       <td>${r.pitch_name}</td>
       <td>${r.start_time}–${r.end_time}</td>
       <td>${teams}</td>
@@ -134,9 +140,35 @@ async function renderSessions() {
     `;
     tbody.appendChild(tr);
   }
+
+  for (const s of singles) {
+    const teams = s.teams?.map(t => `<span class="color-dot" style="background:${t.color};margin-right:2px"></span>${t.name}`).join(', ') || '–';
+    const tr    = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="badge badge-single">Einzeltermin</span></td>
+      <td>${isoToDE(s.date)}</td>
+      <td>${s.pitch_name}</td>
+      <td>${s.start_time}–${s.end_time}</td>
+      <td>${teams}</td>
+      <td><div class="actions">
+        <button class="btn btn-sm btn-danger" onclick="deleteSingleSession(${s.id})">Löschen</button>
+      </div></td>
+    `;
+    tbody.appendChild(tr);
+  }
 }
 
 // ── Session Modal ─────────────────────────────────────────────
+let currentSessionMode = 'recurring';
+
+window.setSessionMode = (mode) => {
+  currentSessionMode = mode;
+  document.getElementById('recurring-fields').classList.toggle('hidden', mode !== 'recurring');
+  document.getElementById('single-fields').classList.toggle('hidden', mode !== 'single');
+  document.getElementById('mode-btn-recurring').className = mode === 'recurring' ? 'btn btn-primary' : 'btn btn-secondary';
+  document.getElementById('mode-btn-single').className    = mode === 'single'    ? 'btn btn-primary' : 'btn btn-secondary';
+};
+
 function buildSessionForm() {
   const form = document.getElementById('session-form');
 
@@ -167,7 +199,12 @@ window.openNewSessionModal = () => {
   buildSessionForm();
   const form = document.getElementById('session-form');
   form.dataset.recurrenceId = '';
+  form.dataset.singleId = '';
   document.getElementById('session-modal-title').textContent = 'Neue Einheit';
+  document.getElementById('session-mode-group').classList.remove('hidden');
+
+  // Modus zurücksetzen
+  setSessionMode('recurring');
 
   // Eigene Teams vorauswählen
   const myTeamIds = (currentUser.teams || []).map(t => t.id);
@@ -176,7 +213,13 @@ window.openNewSessionModal = () => {
   });
 
   const activeSeason = allSeasons.find(s => s.is_active) || allSeasons[0];
-  if (activeSeason) form.querySelector('[name=valid_until]').value = activeSeason.end_date;
+  if (activeSeason) {
+    form.querySelector('[name=valid_from]').value  = activeSeason.start_date;
+    form.querySelector('[name=valid_until]').value = activeSeason.end_date;
+  }
+
+  // Heutiges Datum als Standard für Einzeltermin
+  form.querySelector('[name=single_date]').value = toISO(new Date());
 
   form.onsubmit = submitNewSession;
   document.getElementById('session-modal').classList.remove('hidden');
@@ -190,10 +233,17 @@ window.openEditSessionModal = async (id) => {
 
   const form = document.getElementById('session-form');
   form.dataset.recurrenceId = id;
+  form.dataset.singleId = '';
   document.getElementById('session-modal-title').textContent = 'Einheit bearbeiten';
+  document.getElementById('session-mode-group').classList.add('hidden');
+
+  setSessionMode('recurring');
+  document.getElementById('recurring-fields').classList.remove('hidden');
 
   form.querySelector('[name=pitch_id]').value  = rec.pitch_id;
   form.querySelector('[name=weekday]').value    = rec.weekday;
+  form.querySelector('[name=valid_from]').value  = rec.valid_from || '';
+  form.querySelector('[name=valid_until]').value = rec.valid_until || '';
   form.querySelector('[name=start_time]').value = rec.start_time;
   form.querySelector('[name=end_time]').value   = rec.end_time;
   form.querySelectorAll('[name=teamId]').forEach(cb => {
@@ -209,27 +259,39 @@ async function submitNewSession(e) {
   const form    = document.getElementById('session-form');
   const teamIds = [...form.querySelectorAll('[name=teamId]:checked')].map(el => parseInt(el.value));
   const activeSeason = allSeasons.find(s => s.is_active) || allSeasons[0];
-  const weekday = parseInt(form.querySelector('[name=weekday]').value);
-
-  // Startdatum: nächster passender Wochentag ab Saisonbeginn
-  const jsDay = (weekday + 1) % 7;
-  const d = new Date(activeSeason.start_date);
-  while (d.getDay() !== jsDay) d.setDate(d.getDate() + 1);
-  const startDate = toISO(d);
 
   try {
-    await api.post('/api/sessions', {
-      season_id:   activeSeason.id,
-      pitch_id:    parseInt(form.querySelector('[name=pitch_id]').value),
-      date:        startDate,
-      start_time:  form.querySelector('[name=start_time]').value,
-      end_time:    form.querySelector('[name=end_time]').value,
-      type:        'training',
-      teamIds,
-      recurring:   true,
-      weekday,
-      valid_until: form.querySelector('[name=valid_until]').value || activeSeason.end_date
-    });
+    if (currentSessionMode === 'recurring') {
+      const weekday = parseInt(form.querySelector('[name=weekday]').value);
+      const validFrom = form.querySelector('[name=valid_from]').value || activeSeason.start_date;
+
+      await api.post('/api/sessions', {
+        season_id:   activeSeason.id,
+        pitch_id:    parseInt(form.querySelector('[name=pitch_id]').value),
+        date:        validFrom,
+        start_time:  form.querySelector('[name=start_time]').value,
+        end_time:    form.querySelector('[name=end_time]').value,
+        type:        'training',
+        teamIds,
+        recurring:   true,
+        weekday,
+        valid_until: form.querySelector('[name=valid_until]').value || activeSeason.end_date
+      });
+    } else {
+      const singleDate = form.querySelector('[name=single_date]').value;
+      if (!singleDate) { alert('Bitte ein Datum auswählen.'); return; }
+
+      await api.post('/api/sessions', {
+        season_id:  activeSeason.id,
+        pitch_id:   parseInt(form.querySelector('[name=pitch_id]').value),
+        date:       singleDate,
+        start_time: form.querySelector('[name=start_time]').value,
+        end_time:   form.querySelector('[name=end_time]').value,
+        type:       'training',
+        teamIds,
+        recurring:  false
+      });
+    }
     document.getElementById('session-modal').classList.add('hidden');
     await renderSessions();
   } catch (err) { alert(err.message); }
@@ -255,6 +317,12 @@ async function submitEditSession(e) {
 window.deleteSession = async (id) => {
   if (!confirm('Alle Einheiten dieser Serie löschen?')) return;
   await api.delete(`/api/sessions/recurrences/${id}`);
+  await renderSessions();
+};
+
+window.deleteSingleSession = async (id) => {
+  if (!confirm('Einzeltermin löschen?')) return;
+  await api.delete(`/api/sessions/${id}`);
   await renderSessions();
 };
 

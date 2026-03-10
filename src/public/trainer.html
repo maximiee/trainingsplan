@@ -83,7 +83,7 @@
       <div style="overflow-x:auto">
         <table>
           <thead><tr>
-            <th>Wochentag</th><th>Platz</th><th>Zeit</th><th>Teams</th><th>Aktionen</th>
+            <th>Typ</th><th>Wochentag / Datum</th><th>Platz</th><th>Zeit</th><th>Teams</th><th>Aktionen</th>
           </tr></thead>
           <tbody id="sessions-tbody"></tbody>
         </table>
@@ -162,24 +162,55 @@
   <div class="modal" style="max-width:520px">
     <h2 class="modal-title" id="session-modal-title">Neue Einheit</h2>
     <form id="session-form">
-      <div class="form-row">
-        <div class="form-group">
-          <label>Platz *</label>
-          <select name="pitch_id" class="form-control"></select>
-        </div>
-        <div class="form-group">
-          <label>Wochentag *</label>
-          <select name="weekday" class="form-control">
-            <option value="0">Montag</option>
-            <option value="1">Dienstag</option>
-            <option value="2">Mittwoch</option>
-            <option value="3">Donnerstag</option>
-            <option value="4">Freitag</option>
-            <option value="5">Samstag</option>
-            <option value="6">Sonntag</option>
-          </select>
+      <!-- Modus-Auswahl (nur beim Anlegen) -->
+      <div class="form-group" id="session-mode-group">
+        <div style="display:flex;gap:8px">
+          <button type="button" class="btn btn-primary" id="mode-btn-recurring" onclick="setSessionMode('recurring')">Periodisch</button>
+          <button type="button" class="btn btn-secondary" id="mode-btn-single" onclick="setSessionMode('single')">Einzeltermin</button>
         </div>
       </div>
+
+      <div class="form-group">
+        <label>Platz *</label>
+        <select name="pitch_id" class="form-control"></select>
+      </div>
+
+      <!-- Periodisch: Wochentag + Von/Bis -->
+      <div id="recurring-fields">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Wochentag *</label>
+            <select name="weekday" class="form-control">
+              <option value="0">Montag</option>
+              <option value="1">Dienstag</option>
+              <option value="2">Mittwoch</option>
+              <option value="3">Donnerstag</option>
+              <option value="4">Freitag</option>
+              <option value="5">Samstag</option>
+              <option value="6">Sonntag</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Von *</label>
+            <input type="date" name="valid_from" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Bis *</label>
+            <input type="date" name="valid_until" class="form-control">
+          </div>
+        </div>
+      </div>
+
+      <!-- Einzeltermin: konkretes Datum -->
+      <div id="single-fields" class="hidden">
+        <div class="form-group">
+          <label>Datum *</label>
+          <input type="date" name="single_date" class="form-control">
+        </div>
+      </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>Startzeit *</label>
@@ -193,10 +224,6 @@
       <div class="form-group">
         <label>Teams *</label>
         <div class="checkbox-group" id="session-teams"></div>
-      </div>
-      <div class="form-group">
-        <label>Wiederholen bis</label>
-        <input type="date" name="valid_until" class="form-control">
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="document.getElementById('session-modal').classList.add('hidden')">Abbrechen</button>
