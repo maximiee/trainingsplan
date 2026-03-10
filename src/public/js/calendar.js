@@ -109,10 +109,10 @@ function setupControls() {
     renderWeek();
   });
   document.getElementById('btn-export-pdf')?.addEventListener('click', () => {
-    window.open(`/api/export/pdf?week=${weekParam()}&season_id=${currentSeasonId}`, '_blank');
+    window.open(`/api/export/pdf?season_id=${currentSeasonId}`, '_blank');
   });
   document.getElementById('btn-export-excel-week')?.addEventListener('click', () => {
-    window.open(`/api/export/excel?mode=week&week=${weekParam()}&season_id=${currentSeasonId}`, '_blank');
+    window.open(`/api/export/excel?mode=week&season_id=${currentSeasonId}`, '_blank');
   });
   document.getElementById('btn-export-excel-season')?.addEventListener('click', () => {
     window.open(`/api/export/excel?mode=season&season_id=${currentSeasonId}`, '_blank');
