@@ -4,3 +4,5 @@ data/*.db-shm
 data/*.db-wal
 data/*.log
 .env
+test-results/
+tests/.auth/
