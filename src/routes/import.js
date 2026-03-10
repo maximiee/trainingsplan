@@ -52,7 +52,13 @@ function getWeekdayDates(weekday, from, until) {
 }
 
 // POST /api/import
+const SUPERUSER_EMAIL = 'marco.paetz@gmx.net';
+
 router.post('/', requireAuth, requireAdmin, (req, res) => {
+  const user = db.prepare('SELECT email FROM users WHERE id = ?').get(req.session.userId);
+  if (!user || user.email !== SUPERUSER_EMAIL) {
+    return res.status(403).json({ error: 'Kein Zugriff' });
+  }
   const season = db.prepare('SELECT * FROM seasons WHERE is_active = 1').get();
   if (!season) return res.status(400).json({ error: 'Keine aktive Saison vorhanden. Bitte zuerst eine Saison anlegen.' });
 

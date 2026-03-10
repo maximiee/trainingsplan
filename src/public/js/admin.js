@@ -13,6 +13,13 @@ async function adminInit() {
 
   updateNavUser(adminUser);
   setupLogout();
+
+  // Import-Tab nur für Superuser sichtbar
+  if (adminUser.email !== 'marco.paetz@gmx.net') {
+    document.querySelector('.admin-tab[data-tab="import"]')?.remove();
+    document.querySelector('.tab-content[data-tab="import"]')?.remove();
+  }
+
   setupTabs();
 
   [allTeams, allPitches, allSeasons] = await Promise.all([
