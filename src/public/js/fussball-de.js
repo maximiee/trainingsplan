@@ -61,18 +61,19 @@ function renderFdGames(data, appTeamId) {
     const dateDE = dateISO ? dateISO.split('-').reverse().join('.') : (g.date || '–');
     const time = parseFdTime(g.time);
     const isPast = g._type === 'prev';
-    const result = (g.homeScore != null && g.awayScore != null)
-      ? `<strong>${g.homeScore}:${g.awayScore}</strong>` : '';
+    const result = g.result || '';
     const begegnung = (g.homeTeam && g.awayTeam)
       ? `${g.homeTeam} – ${g.awayTeam}`
       : (g.competition || '–');
+    const aktion = isPast
+      ? `<span style="font-weight:600;color:var(--text-muted)">${result || '–'}</span>`
+      : `<button id="fd-btn-${i}" class="btn btn-sm btn-primary" onclick="importFdGame(${i})">Eintragen</button>`;
 
     return `<tr style="${isPast ? 'opacity:0.65' : ''}">
       <td>${dateDE}</td>
       <td>${time || '–'}</td>
       <td style="max-width:240px">${begegnung}</td>
-      <td>${result}</td>
-      <td><button id="fd-btn-${i}" class="btn btn-sm btn-primary" onclick="importFdGame(${i})">Eintragen</button></td>
+      <td>${aktion}</td>
     </tr>`;
   });
 
@@ -83,8 +84,7 @@ function renderFdGames(data, appTeamId) {
           <th style="width:90px">Datum</th>
           <th style="width:60px">Zeit</th>
           <th>Begegnung</th>
-          <th style="width:70px">Ergebnis</th>
-          <th style="width:100px"></th>
+          <th style="width:110px"></th>
         </tr></thead>
         <tbody>${rows.join('')}</tbody>
       </table>

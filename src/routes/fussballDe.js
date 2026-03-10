@@ -53,7 +53,21 @@ function parseMatchesHtml(html, ownTeamId) {
       dateISO = `${y}-${m}-${d}`;
     }
 
-    matches.push({ date: dateISO, time: timeStr, homeTeam, awayTeam });
+    // Ergebnis aus der Spielzeile lesen (für vergangene Spiele)
+    // Typische Selektoren: .column-score, .ergebnis, .result
+    const rows = $('tr').filter((_, el) => {
+      const text = $(el).text();
+      return text.includes(homeTeam) && text.includes(awayTeam);
+    });
+    let result = '';
+    if (rows.length > 0) {
+      const scoreEl = rows.first().find('.column-score, .ergebnis, .result, [class*="score"], [class*="result"]');
+      const scoreText = scoreEl.text().trim();
+      const scoreMatch = scoreText.match(/(\d+)\s*:\s*(\d+)/);
+      if (scoreMatch) result = `${scoreMatch[1]}:${scoreMatch[2]}`;
+    }
+
+    matches.push({ date: dateISO, time: timeStr, homeTeam, awayTeam, result });
   }
 
   return matches;
