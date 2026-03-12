@@ -515,6 +515,7 @@ function buildSquadCard(team) {
           <th style="width:110px">Anzahl</th>
           <th style="width:150px">Geschlecht</th>
           <th style="width:120px">Jahrgang</th>
+          <th style="width:100px">Verein</th>
           <th style="width:60px"></th>
         </tr></thead>
         <tbody id="squad-tbody-${team.id}"></tbody>
@@ -589,7 +590,7 @@ function renderSquadRows(teamId) {
   if (!tbody) return;
 
   if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">Noch keine Jahrgänge eingetragen.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">Noch keine Jahrgänge eingetragen.</td></tr>';
   } else {
     tbody.innerHTML = rows.map((r, i) => `
       <tr>
@@ -608,6 +609,13 @@ function renderSquadRows(teamId) {
             oninput="squadState[${teamId}][${i}].year = parseInt(this.value)||0">
         </td>
         <td>
+          <select class="form-control" onchange="squadState[${teamId}][${i}].verein = this.value">
+            <option value="TSV" ${(r.verein || 'TSV') === 'TSV' ? 'selected' : ''}>TSV</option>
+            <option value="MTV" ${r.verein === 'MTV' ? 'selected' : ''}>MTV</option>
+            <option value="TSG" ${r.verein === 'TSG' ? 'selected' : ''}>TSG</option>
+          </select>
+        </td>
+        <td>
           <button class="btn btn-sm btn-danger" onclick="removeSquadRow(${teamId}, ${i})">✕</button>
         </td>
       </tr>`).join('');
@@ -624,7 +632,7 @@ function updateSquadTotal(teamId) {
 
 window.addSquadRow = (teamId) => {
   if (!squadState[teamId]) squadState[teamId] = [];
-  squadState[teamId].push({ year: new Date().getFullYear() - 10, gender: 'm', count: 0 });
+  squadState[teamId].push({ year: new Date().getFullYear() - 10, gender: 'm', count: 0, verein: 'TSV' });
   renderSquadRows(teamId);
 };
 

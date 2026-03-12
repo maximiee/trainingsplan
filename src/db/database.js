@@ -33,6 +33,11 @@ if (!columns.includes('type')) {
   db.exec("ALTER TABLE match_appointments ADD COLUMN type TEXT NOT NULL DEFAULT 'spiel'");
 }
 
+const squadColumns = db.prepare("PRAGMA table_info(team_squad)").all().map(c => c.name);
+if (!squadColumns.includes('verein')) {
+  db.exec("ALTER TABLE team_squad ADD COLUMN verein TEXT NOT NULL DEFAULT 'TSV' CHECK(verein IN ('TSV', 'MTV', 'TSG'))");
+}
+
 // Grunddaten anlegen, falls Tabellen leer
 function seed() {
   // Plätze

@@ -107,7 +107,7 @@ router.get('/:id/squad', requireAuth, (req, res) => {
     if (!assigned) return res.status(403).json({ error: 'Kein Zugriff' });
   }
   const entries = db.prepare(
-    'SELECT id, year, gender, count FROM team_squad WHERE team_id = ? ORDER BY year DESC, gender'
+    'SELECT id, year, gender, count, verein FROM team_squad WHERE team_id = ? ORDER BY year DESC, gender, verein'
   ).all(teamId);
   res.json(entries);
 });
@@ -124,14 +124,16 @@ router.put('/:id/squad', requireAuth, (req, res) => {
 
   const deleteAll = db.prepare('DELETE FROM team_squad WHERE team_id = ?');
   const insert = db.prepare(
-    'INSERT INTO team_squad (team_id, year, gender, count) VALUES (?, ?, ?, ?)'
+    'INSERT INTO team_squad (team_id, year, gender, count, verein) VALUES (?, ?, ?, ?, ?)'
   );
+  const VEREINE = ['TSV', 'MTV', 'TSG'];
   db.transaction(() => {
     deleteAll.run(teamId);
     for (const e of entries) {
       const count = parseInt(e.count) || 0;
+      const verein = VEREINE.includes(e.verein) ? e.verein : 'TSV';
       if (count > 0 && e.year && (e.gender === 'm' || e.gender === 'w')) {
-        insert.run(teamId, parseInt(e.year), e.gender, count);
+        insert.run(teamId, parseInt(e.year), e.gender, count, verein);
       }
     }
   })();
