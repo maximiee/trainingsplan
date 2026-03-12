@@ -85,6 +85,14 @@
     })
     .catch(() => {});
 
+  // Enter-Taste in Passwort-Feldern → Formular absenden
+  document.querySelector('#login-form [name=password]').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('login-form').requestSubmit();
+  });
+  document.querySelector('#register-form [name=password]').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('register-form').requestSubmit();
+  });
+
   // Login/Register umschalten
   document.getElementById('link-show-register').addEventListener('click', (e) => {
     e.preventDefault();
