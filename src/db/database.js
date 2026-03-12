@@ -22,6 +22,11 @@ const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
 db.exec(schema);
 
 // Migrationen
+const seasonColumns = db.prepare("PRAGMA table_info(seasons)").all().map(c => c.name);
+if (!seasonColumns.includes('is_archived')) {
+  db.exec('ALTER TABLE seasons ADD COLUMN is_archived INTEGER NOT NULL DEFAULT 0');
+}
+
 const columns = db.prepare("PRAGMA table_info(match_appointments)").all().map(c => c.name);
 if (!columns.includes('pitch_id')) {
   db.exec('ALTER TABLE match_appointments ADD COLUMN pitch_id INTEGER REFERENCES pitches(id)');

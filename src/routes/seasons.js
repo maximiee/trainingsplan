@@ -44,6 +44,16 @@ router.post('/:id/activate', requireAuth, requireAdmin, (req, res) => {
   res.json({ ok: true });
 });
 
+// POST /api/seasons/:id/archive
+router.post('/:id/archive', requireAuth, requireAdmin, (req, res) => {
+  const id = parseInt(req.params.id);
+  const season = db.prepare('SELECT * FROM seasons WHERE id = ?').get(id);
+  if (!season) return res.status(404).json({ error: 'Saison nicht gefunden' });
+  if (season.is_active) return res.status(400).json({ error: 'Aktive Saison kann nicht archiviert werden' });
+  db.prepare('UPDATE seasons SET is_archived = 1 WHERE id = ?').run(id);
+  res.json({ ok: true });
+});
+
 // POST /api/seasons/:id/copy-recurrences – Wiederkehrende Einheiten aus alter Saison übernehmen
 router.post('/:id/copy-recurrences', requireAuth, requireAdmin, (req, res) => {
   const targetSeasonId = parseInt(req.params.id);

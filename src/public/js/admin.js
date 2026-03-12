@@ -443,25 +443,44 @@ document.getElementById('pitch-form')?.addEventListener('submit', async (e) => {
 });
 
 // --- Saisons ---
+let showArchivedSeasons = false;
+
 async function renderSeasons() {
   allSeasons = await api.get('/api/seasons');
   const container = document.getElementById('seasons-list');
   if (!container) return;
   container.innerHTML = '';
 
-  for (const s of allSeasons) {
+  const hasArchived = allSeasons.some(s => s.is_archived === 1);
+  if (hasArchived) {
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'btn btn-sm btn-secondary';
+    toggleBtn.style.marginBottom = '12px';
+    toggleBtn.textContent = showArchivedSeasons ? 'Archiv ausblenden' : 'Archiv anzeigen';
+    toggleBtn.onclick = () => { showArchivedSeasons = !showArchivedSeasons; renderSeasons(); };
+    container.appendChild(toggleBtn);
+  }
+
+  const visibleSeasons = showArchivedSeasons ? allSeasons : allSeasons.filter(s => !s.is_archived);
+
+  for (const s of visibleSeasons) {
     const item = document.createElement('div');
     item.className = 'season-item';
     const isActive = s.is_active === 1;
+    const isArchived = s.is_archived === 1;
     item.innerHTML = `
       <div style="flex:1">
-        <div class="season-name">${s.name} ${isActive ? '<span class="badge badge-active">Aktiv</span>' : ''}</div>
+        <div class="season-name">${s.name}
+          ${isActive ? '<span class="badge badge-active">Aktiv</span>' : ''}
+          ${isArchived ? '<span class="badge badge-archived">Archiviert</span>' : ''}
+        </div>
         <div class="season-dates">${isoToDE(s.start_date)} – ${isoToDE(s.end_date)} · ${s.type}</div>
       </div>
       <div class="actions">
-        ${!isActive ? `<button class="btn btn-sm btn-success" onclick="activateSeason(${s.id})">Aktivieren</button>` : ''}
-        <button class="btn btn-sm btn-secondary" onclick="openEditSeason(${s.id})">Bearbeiten</button>
-        <button class="btn btn-sm btn-secondary" onclick="openCopyRecurrences(${s.id})">Vorlage importieren</button>
+        ${!isActive && !isArchived ? `<button class="btn btn-sm btn-success" onclick="activateSeason(${s.id})">Aktivieren</button>` : ''}
+        ${!isArchived ? `<button class="btn btn-sm btn-secondary" onclick="openEditSeason(${s.id})">Bearbeiten</button>` : ''}
+        ${!isArchived ? `<button class="btn btn-sm btn-secondary" onclick="openCopyRecurrences(${s.id})">Vorlage importieren</button>` : ''}
+        ${!isActive && !isArchived ? `<button class="btn btn-sm btn-secondary" onclick="archiveSeason(${s.id})">Archivieren</button>` : ''}
       </div>
     `;
     container.appendChild(item);
@@ -507,9 +526,16 @@ document.getElementById('season-form')?.addEventListener('submit', async (e) => 
 });
 
 window.activateSeason = async (id) => {
-  if (!confirm('Diese Saison aktivieren? Die aktuell aktive Saison wird archiviert.')) return;
+  if (!confirm('Diese Saison aktivieren?')) return;
   await api.post(`/api/seasons/${id}/activate`);
   allSeasons = await api.get('/api/seasons');
+  await renderSeasons();
+};
+
+window.archiveSeason = async (id) => {
+  const season = allSeasons.find(s => s.id === id);
+  if (!confirm(`Saison „${season?.name}" archivieren? Sie kann danach nicht mehr bearbeitet werden.`)) return;
+  await api.post(`/api/seasons/${id}/archive`);
   await renderSeasons();
 };
 
