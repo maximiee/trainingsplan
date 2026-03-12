@@ -35,7 +35,7 @@ router.get('/overview', requireAuth, requireAdmin, (req, res) => {
     `).all(team.id).map(u => u.name);
 
     const squad = db.prepare(
-      'SELECT year, gender, count FROM team_squad WHERE team_id = ? ORDER BY year DESC, gender'
+      'SELECT year, gender, count, verein FROM team_squad WHERE team_id = ? ORDER BY year DESC, gender, verein'
     ).all(team.id);
 
     const total_m = squad.filter(s => s.gender === 'm').reduce((a, b) => a + b.count, 0);

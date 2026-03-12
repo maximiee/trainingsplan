@@ -1000,6 +1000,7 @@ async function renderSquadOverview() {
         <td><div style="display:flex;align-items:center">${colorDot}<strong>${team.name}</strong></div></td>
         <td>${trainers}</td>
         <td style="color:var(--text-muted)">–</td>
+        <td style="color:var(--text-muted)">–</td>
         <td style="text-align:center;color:var(--text-muted)">–</td>
         <td style="text-align:center;color:var(--text-muted)">–</td>
         <td style="text-align:center;color:var(--text-muted)">–</td>
@@ -1008,36 +1009,38 @@ async function renderSquadOverview() {
       continue;
     }
 
-    // Jahrgänge zusammenfassen: pro year einen Eintrag mit m+w
-    const byYear = {};
+    // Zeilen: eine pro (year, verein)-Kombination
+    const rows = [];
     for (const s of team.squad) {
-      if (!byYear[s.year]) byYear[s.year] = { m: 0, w: 0 };
-      byYear[s.year][s.gender] += s.count;
+      const key = `${s.year}__${s.verein}`;
+      let row = rows.find(r => r.key === key);
+      if (!row) { row = { key, year: s.year, verein: s.verein, m: 0, w: 0 }; rows.push(row); }
+      row[s.gender] += s.count;
     }
-    const years = Object.keys(byYear).sort((a, b) => b - a);
+    rows.sort((a, b) => b.year - a.year || a.verein.localeCompare(b.verein));
 
-    years.forEach((year, i) => {
-      const { m, w } = byYear[year];
+    rows.forEach((row, i) => {
       const tr = document.createElement('tr');
       if (i === 0) {
-        // Erste Zeile: Team-Name und Trainer mit rowspan
-        const totalRows = years.length + 1; // +1 für die Summenzeile
+        const totalRows = rows.length + 1; // +1 für Summenzeile
         tr.innerHTML = `
           <td rowspan="${totalRows}" style="vertical-align:top;padding-top:10px">
             <div style="display:flex;align-items:flex-start;gap:4px">${colorDot}<strong>${team.name}</strong></div>
           </td>
           <td rowspan="${totalRows}" style="vertical-align:top;padding-top:10px">${trainers}</td>
-          <td>${year}</td>
-          <td style="text-align:center">${m || '–'}</td>
-          <td style="text-align:center">${w || '–'}</td>
-          <td style="text-align:center">${m + w}</td>
+          <td>${row.year}</td>
+          <td>${row.verein}</td>
+          <td style="text-align:center">${row.m || '–'}</td>
+          <td style="text-align:center">${row.w || '–'}</td>
+          <td style="text-align:center">${row.m + row.w}</td>
         `;
       } else {
         tr.innerHTML = `
-          <td>${year}</td>
-          <td style="text-align:center">${m || '–'}</td>
-          <td style="text-align:center">${w || '–'}</td>
-          <td style="text-align:center">${m + w}</td>
+          <td>${row.year}</td>
+          <td>${row.verein}</td>
+          <td style="text-align:center">${row.m || '–'}</td>
+          <td style="text-align:center">${row.w || '–'}</td>
+          <td style="text-align:center">${row.m + row.w}</td>
         `;
       }
       tbody.appendChild(tr);
@@ -1047,7 +1050,7 @@ async function renderSquadOverview() {
     const sumTr = document.createElement('tr');
     sumTr.style.background = 'var(--bg-secondary)';
     sumTr.innerHTML = `
-      <td style="font-weight:600;color:var(--text-muted);font-size:12px">Gesamt</td>
+      <td colspan="2" style="font-weight:600;color:var(--text-muted);font-size:12px">Gesamt</td>
       <td style="text-align:center;font-weight:600">${team.total_m || '–'}</td>
       <td style="text-align:center;font-weight:600">${team.total_w || '–'}</td>
       <td style="text-align:center;font-weight:700">${team.total}</td>
@@ -1058,7 +1061,7 @@ async function renderSquadOverview() {
   // Gesamtsumme aller Teams
   tfoot.innerHTML = `
     <tr style="background:var(--primary-light,#e8f0fe);font-weight:700">
-      <td colspan="3" style="text-align:right;padding-right:12px">Alle Mannschaften:</td>
+      <td colspan="4" style="text-align:right;padding-right:12px">Alle Mannschaften:</td>
       <td style="text-align:center">${grandTotal_m}</td>
       <td style="text-align:center">${grandTotal_w}</td>
       <td style="text-align:center">${grandTotal_m + grandTotal_w}</td>
