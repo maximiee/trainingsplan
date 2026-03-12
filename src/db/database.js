@@ -33,9 +33,15 @@ if (!columns.includes('type')) {
   db.exec("ALTER TABLE match_appointments ADD COLUMN type TEXT NOT NULL DEFAULT 'spiel'");
 }
 
-const squadColumns = db.prepare("PRAGMA table_info(team_squad)").all().map(c => c.name);
-if (!squadColumns.includes('verein')) {
-  // Tabelle neu erstellen mit verein-Spalte und erweitertem UNIQUE-Constraint
+// Prüfen ob team_squad das UNIQUE-Constraint (team_id, year, gender, verein) hat.
+// Falls nicht (alter Stand ohne verein oder mit ALTER-TABLE-Migration), Tabelle neu aufbauen.
+const squadIndexes = db.prepare("PRAGMA index_list(team_squad)").all();
+const squadUniqueHasVerein = squadIndexes.some(idx => {
+  if (!idx.unique) return false;
+  const cols = db.prepare(`PRAGMA index_info("${idx.name}")`).all().map(c => c.name);
+  return cols.includes('verein');
+});
+if (!squadUniqueHasVerein) {
   db.exec(`
     CREATE TABLE team_squad_new (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,8 +53,10 @@ if (!squadColumns.includes('verein')) {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(team_id, year, gender, verein)
     );
-    INSERT INTO team_squad_new (id, team_id, year, gender, count, updated_at)
-      SELECT id, team_id, year, gender, count, updated_at FROM team_squad;
+    INSERT INTO team_squad_new (id, team_id, year, gender, count, verein, updated_at)
+      SELECT id, team_id, year, gender, count,
+        CASE WHEN verein IN ('TSV','MTV','TSG') THEN verein ELSE 'TSV' END,
+        updated_at FROM team_squad;
     DROP TABLE team_squad;
     ALTER TABLE team_squad_new RENAME TO team_squad;
   `);
