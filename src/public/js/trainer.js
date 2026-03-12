@@ -493,7 +493,9 @@ async function renderSquad() {
   for (const team of myTeams) {
     const entries = await api.get(`/api/teams/${team.id}/squad`);
     squadState[team.id] = entries.map(e => ({ ...e }));
-    container.appendChild(buildSquadCard(team));
+    const card = buildSquadCard(team);
+    container.appendChild(card);
+    if (team.name.toLowerCase().includes('jugend')) renderSquadRows(team.id);
   }
 }
 
@@ -545,7 +547,6 @@ function buildSquadCard(team) {
     ${squadSection}
   `;
 
-  if (isJugend) renderSquadRows(team.id);
   return card;
 }
 
@@ -577,8 +578,12 @@ document.getElementById('trainer-team-form')?.addEventListener('submit', async (
     // Lokalen Team-State aktualisieren und Karte neu bauen
     const team = (currentUser.teams || []).find(t => t.id === teamId);
     if (team) Object.assign(team, data);
-    const card = document.getElementById(`squad-card-${teamId}`);
-    if (card) card.replaceWith(buildSquadCard(team));
+    const oldCard = document.getElementById(`squad-card-${teamId}`);
+    if (oldCard) {
+      const newCard = buildSquadCard(team);
+      oldCard.replaceWith(newCard);
+      if (team.name.toLowerCase().includes('jugend')) renderSquadRows(teamId);
+    }
     renderFdButtons();
   } catch (err) {
     alert(err.message);
