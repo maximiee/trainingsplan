@@ -1,10 +1,44 @@
 // fussball.de Spiele-Import – gemeinsam für Admin und Trainer
 let _fdGames = [];
 let _fdAppTeamId = null;
+let _fdPitches = [];
+let _fdImportIdx = null;
+
+// Import-Bestätigungs-Modal einmalig in den DOM injizieren
+(function injectFdImportModal() {
+  if (document.getElementById('fd-import-modal')) return;
+  const tpl = `
+<div class="modal-overlay hidden" id="fd-import-modal">
+  <div class="modal" style="max-width:420px">
+    <h2 class="modal-title">Spiel eintragen</h2>
+    <p id="fd-import-info" style="margin-bottom:16px;font-weight:500"></p>
+    <div class="form-group">
+      <label>Heim / Auswärts</label>
+      <select id="fd-import-location" class="form-control">
+        <option value="heim">Heimspiel</option>
+        <option value="auswaerts">Auswärtsspiel</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-top:12px">
+      <label>Platz</label>
+      <select id="fd-import-pitch" class="form-control"></select>
+    </div>
+    <div class="modal-footer" style="margin-top:16px">
+      <button class="btn btn-secondary" onclick="closeFdImportModal()">Abbrechen</button>
+      <button class="btn btn-primary" onclick="confirmFdImport()">Eintragen</button>
+    </div>
+  </div>
+</div>`;
+  document.body.insertAdjacentHTML('beforeend', tpl);
+})();
 
 function closeFdModal() {
   document.getElementById('fd-modal').classList.add('hidden');
 }
+
+window.closeFdImportModal = () => {
+  document.getElementById('fd-import-modal').classList.add('hidden');
+};
 
 window.openFdGamesModal = async (appTeamId, fussballDeId) => {
   _fdAppTeamId = appTeamId;
@@ -16,7 +50,11 @@ window.openFdGamesModal = async (appTeamId, fussballDeId) => {
   body.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:24px">Lade Spiele…</p>';
 
   try {
-    const data = await api.get(`/api/fussball-de/games/${encodeURIComponent(fussballDeId)}`);
+    const [data, pitches] = await Promise.all([
+      api.get(`/api/fussball-de/games/${encodeURIComponent(fussballDeId)}`),
+      _fdPitches.length ? Promise.resolve(_fdPitches) : api.get('/api/pitches')
+    ]);
+    _fdPitches = pitches;
     renderFdGames(data, appTeamId);
   } catch (err) {
     body.innerHTML = `<p style="color:var(--danger);padding:16px">${err.message}</p>`;
@@ -91,28 +129,58 @@ function renderFdGames(data, appTeamId) {
     </div>`;
 }
 
-window.importFdGame = async (idx) => {
+window.importFdGame = (idx) => {
+  const g = _fdGames[idx];
+  if (!g) return;
+
+  _fdImportIdx = idx;
+
+  const dateISO = parseFdDate(g.date);
+  const dateDE = dateISO ? dateISO.split('-').reverse().join('.') : (g.date || '');
+  const time = parseFdTime(g.time);
+  const begegnung = (g.homeTeam && g.awayTeam)
+    ? `${g.homeTeam} – ${g.awayTeam}`
+    : (g.competition || '');
+
+  document.getElementById('fd-import-info').textContent =
+    `${dateDE}${time ? ' · ' + time : ''} · ${begegnung}`;
+
+  // Platz-Dropdown befüllen
+  const pitchSel = document.getElementById('fd-import-pitch');
+  pitchSel.innerHTML = '<option value="">– kein Platz –</option>';
+  for (const p of _fdPitches) {
+    pitchSel.innerHTML += `<option value="${p.id}">${p.location_name ? p.location_name + ' – ' : ''}${p.name}</option>`;
+  }
+
+  // Standard Heim/Auswärts vorauswählen anhand Teamname
+  const locationSel = document.getElementById('fd-import-location');
+  if (g.homeTeam && g.awayTeam) {
+    locationSel.value = 'heim'; // Nutzer wählt selbst
+  }
+
+  document.getElementById('fd-import-modal').classList.remove('hidden');
+};
+
+window.confirmFdImport = async () => {
+  const idx = _fdImportIdx;
   const g = _fdGames[idx];
   if (!g) return;
 
   const dateISO = parseFdDate(g.date);
   const time = parseFdTime(g.time);
+  const location = document.getElementById('fd-import-location').value;
+  const pitchId = document.getElementById('fd-import-pitch').value || null;
 
-  let location = 'heim';
   let opponent = '';
-
   if (g.homeTeam && g.awayTeam) {
-    const isHeim = confirm(
-      `${g.homeTeam} vs. ${g.awayTeam}\n\nIst das ein HEIM-Spiel?\n→ OK = Heim\n→ Abbrechen = Auswärts`
-    );
-    location = isHeim ? 'heim' : 'auswaerts';
-    opponent = isHeim ? g.awayTeam : g.homeTeam;
+    opponent = location === 'heim' ? g.awayTeam : g.homeTeam;
   } else {
     opponent = g.competition || '';
   }
 
-  const btn = document.getElementById(`fd-btn-${idx}`);
-  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  const confirmBtn = document.querySelector('#fd-import-modal .btn-primary');
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = '…';
 
   try {
     await api.post('/api/matches', {
@@ -120,14 +188,22 @@ window.importFdGame = async (idx) => {
       date: dateISO,
       time: time || null,
       opponent: opponent || null,
-      location
+      location,
+      pitch_id: pitchId ? parseInt(pitchId) : null
     });
+
+    document.getElementById('fd-import-modal').classList.add('hidden');
+
+    const btn = document.getElementById(`fd-btn-${idx}`);
     if (btn) {
       btn.textContent = '✓ Eingetragen';
       btn.className = 'btn btn-sm btn-secondary';
+      btn.disabled = true;
     }
   } catch (err) {
     alert('Fehler: ' + err.message);
-    if (btn) { btn.disabled = false; btn.textContent = 'Eintragen'; }
+  } finally {
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Eintragen';
   }
 };
