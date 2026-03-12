@@ -514,6 +514,14 @@ async function renderSquad() {
     return;
   }
 
+  const teamOrder = (name) => {
+    const n = name.toLowerCase();
+    if (n.includes('jugend')) return 2;
+    if (n.includes('ü') || n.startsWith('ue')) return 1;
+    return 0;
+  };
+  myTeams.sort((a, b) => teamOrder(a.name) - teamOrder(b.name) || a.name.localeCompare(b.name, 'de'));
+
   for (const team of myTeams) {
     const entries = await api.get(`/api/teams/${team.id}/squad`);
     squadState[team.id] = entries.map(e => ({ ...e }));
