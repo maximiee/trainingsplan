@@ -1099,7 +1099,8 @@ window.printSquadOverview = () => {
 };
 
 // ── Vereins-Details Modal ─────────────────────────────────────
-const VEREIN_COLORS = { TSV: '#4a90d9', MTV: '#e8623a', TSG: '#4caf7d' };
+const VEREIN_COLORS = { TSV: '#1a1a1a', MTV: '#cc0000', TSG: '#f0f0f0' };
+const VEREIN_LABEL_COLORS = { TSV: '#fff', MTV: '#fff', TSG: '#333' };
 
 window.openSquadDetails = (teamName, encodedSquad) => {
   const squad = JSON.parse(decodeURIComponent(encodedSquad));
@@ -1127,7 +1128,7 @@ window.openSquadDetails = (teamName, encodedSquad) => {
           <span>${count} Spieler &nbsp;<strong>${pct}%</strong></span>
         </div>
         <div style="background:var(--border);border-radius:4px;height:10px;overflow:hidden">
-          <div style="width:${pct}%;background:${color};height:100%;border-radius:4px;transition:width .3s"></div>
+          <div style="width:${pct}%;background:${color};height:100%;border-radius:4px;transition:width .3s;${v==='TSG'?'box-shadow:inset 0 0 0 1px #ccc':''}"></div>
         </div>
       </div>`;
   }).join('');
@@ -1152,7 +1153,7 @@ window.openSquadDetails = (teamName, encodedSquad) => {
     ctx.closePath();
     ctx.fillStyle = VEREIN_COLORS[v] || '#999';
     ctx.fill();
-    ctx.strokeStyle = '#fff';
+    ctx.strokeStyle = v === 'TSG' ? '#bbb' : '#fff';
     ctx.lineWidth = 2;
     ctx.stroke();
 
@@ -1161,7 +1162,7 @@ window.openSquadDetails = (teamName, encodedSquad) => {
       const mid = angle + slice / 2;
       const lx = cx + Math.cos(mid) * r * 0.65;
       const ly = cy + Math.sin(mid) * r * 0.65;
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = VEREIN_LABEL_COLORS[v] || '#333';
       ctx.font = 'bold 13px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
