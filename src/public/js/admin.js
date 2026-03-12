@@ -322,6 +322,7 @@ document.getElementById('team-form')?.addEventListener('submit', async (e) => {
     }
     document.getElementById('team-modal').classList.add('hidden');
     await renderTeams();
+    await renderSquadOverview();
   } catch (err) {
     showAlert(form, err.message);
   }
