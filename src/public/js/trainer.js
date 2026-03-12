@@ -538,6 +538,7 @@ function buildSquadCard(team) {
       <div style="display:flex;gap:8px">
         ${fdBtn}
         ${isJugend ? `<button class="btn btn-secondary" onclick="addSquadRow(${team.id})">+ Jahrgang</button>` : ''}
+        ${isJugend ? `<button class="btn btn-secondary" onclick="openTrainerSquadDetails(${team.id})">Details</button>` : ''}
         <button class="btn btn-secondary" onclick="openTrainerTeamModal(${team.id})">Bearbeiten</button>
       </div>
     </div>
@@ -652,6 +653,78 @@ window.saveSquad = async (teamId) => {
     msg.style.color = 'var(--danger)';
     msg.textContent = err.message;
   }
+};
+
+// ── Vereins-Details ───────────────────────────────────────────
+const VEREIN_COLORS = { TSV: '#1a1a1a', MTV: '#cc0000', TSG: '#f0f0f0' };
+const VEREIN_LABEL_COLORS = { TSV: '#fff', MTV: '#fff', TSG: '#333' };
+
+window.openTrainerSquadDetails = (teamId) => {
+  const squad = squadState[teamId] || [];
+  const team = (currentUser.teams || []).find(t => t.id === teamId);
+  const teamName = team ? team.name : '';
+
+  const byVerein = {};
+  for (const s of squad) {
+    if (!byVerein[s.verein]) byVerein[s.verein] = 0;
+    byVerein[s.verein] += s.count;
+  }
+  const total = Object.values(byVerein).reduce((a, b) => a + b, 0);
+  const vereine = Object.keys(byVerein).sort();
+
+  document.getElementById('trainer-squad-details-title').textContent = `${teamName} – Vereinszugehörigkeit`;
+
+  const textHtml = vereine.map(v => {
+    const count = byVerein[v];
+    const pct = total > 0 ? Math.round(count / total * 100) : 0;
+    const color = VEREIN_COLORS[v] || '#999';
+    return `
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:14px">
+          <span style="font-weight:600;color:${color === '#f0f0f0' ? '#555' : color}">${v}</span>
+          <span>${count} Spieler &nbsp;<strong>${pct}%</strong></span>
+        </div>
+        <div style="background:var(--border);border-radius:4px;height:10px;overflow:hidden">
+          <div style="width:${pct}%;background:${color};height:100%;border-radius:4px;transition:width .3s;${v==='TSG'?'box-shadow:inset 0 0 0 1px #ccc':''}"></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const body = document.getElementById('trainer-squad-details-body');
+  body.innerHTML = total === 0
+    ? '<p style="color:var(--text-muted);text-align:center">Noch keine Kaderdaten vorhanden.</p>'
+    : `<div style="margin-bottom:20px">${textHtml}</div>
+       <canvas id="trainer-pie-canvas" width="220" height="220" style="display:block;margin:0 auto"></canvas>`;
+
+  if (total > 0) {
+    const ctx = document.getElementById('trainer-pie-canvas').getContext('2d');
+    const cx = 110, cy = 110, r = 90;
+    let angle = -Math.PI / 2;
+    for (const v of vereine) {
+      const slice = byVerein[v] / total * 2 * Math.PI;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, angle, angle + slice);
+      ctx.closePath();
+      ctx.fillStyle = VEREIN_COLORS[v] || '#999';
+      ctx.fill();
+      ctx.strokeStyle = v === 'TSG' ? '#bbb' : '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      if (slice > 0.25) {
+        const mid = angle + slice / 2;
+        ctx.fillStyle = VEREIN_LABEL_COLORS[v] || '#333';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${Math.round(byVerein[v] / total * 100)}%`,
+          cx + Math.cos(mid) * r * 0.65, cy + Math.sin(mid) * r * 0.65);
+      }
+      angle += slice;
+    }
+  }
+
+  document.getElementById('trainer-squad-details-modal').classList.remove('hidden');
 };
 
 document.addEventListener('DOMContentLoaded', init);

@@ -292,6 +292,17 @@
   </div>
 </div>
 
+<!-- Vereins-Details-Modal -->
+<div class="modal-overlay hidden" id="trainer-squad-details-modal" onclick="if(event.target===this)this.classList.add('hidden')">
+  <div class="modal" style="max-width:480px">
+    <h2 class="modal-title" id="trainer-squad-details-title">Vereinszugehörigkeit</h2>
+    <div id="trainer-squad-details-body" style="padding:8px 0 16px"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('trainer-squad-details-modal').classList.add('hidden')">Schließen</button>
+    </div>
+  </div>
+</div>
+
 <script src="/js/api.js"></script>
 <script src="/js/fussball-de.js"></script>
 <script src="/js/trainer.js"></script>
