@@ -1020,7 +1020,7 @@ async function renderSquadOverview() {
     }
     rows.sort((a, b) => b.year - a.year || a.verein.localeCompare(b.verein));
 
-    const squadDataAttr = encodeURIComponent(JSON.stringify(team.squad));
+    squadDetailsMap.set(team.id, { name: team.name, squad: team.squad });
 
     rows.forEach((row, i) => {
       const tr = document.createElement('tr');
@@ -1038,7 +1038,7 @@ async function renderSquadOverview() {
           <td style="text-align:center">${row.m + row.w}</td>
           <td rowspan="${totalRows}" style="vertical-align:top;padding-top:8px">
             <button class="btn btn-sm btn-secondary"
-              onclick="openSquadDetails('${team.name}','${squadDataAttr}')">Details</button>
+              onclick="openSquadDetails(${team.id})">Details</button>
           </td>
         `;
       } else {
@@ -1101,9 +1101,10 @@ window.printSquadOverview = () => {
 // ── Vereins-Details Modal ─────────────────────────────────────
 const VEREIN_COLORS = { TSV: '#1a1a1a', MTV: '#cc0000', TSG: '#f0f0f0' };
 const VEREIN_LABEL_COLORS = { TSV: '#fff', MTV: '#fff', TSG: '#333' };
+const squadDetailsMap = new Map();
 
-window.openSquadDetails = (teamName, encodedSquad) => {
-  const squad = JSON.parse(decodeURIComponent(encodedSquad));
+window.openSquadDetails = (teamId) => {
+  const { name: teamName, squad } = squadDetailsMap.get(teamId);
 
   // Summen pro Verein
   const byVerein = {};
