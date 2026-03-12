@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trainingsplan – Handbuch für Trainer</title>
+  <style>
+    /* ── Reset & Basis ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 11pt;
+      color: #1a1a2e;
+      background: #fff;
+      line-height: 1.6;
+    }
+
+    /* ── Layout ── */
+    .page {
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 20mm 18mm;
+    }
+
+    /* ── Titelseite ── */
+    .cover {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      padding-bottom: 40mm;
+    }
+
+    .cover-badge {
+      background: #e8f4fd;
+      color: #1a6fb5;
+      font-size: 9pt;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+    }
+
+    .cover-title {
+      font-size: 36pt;
+      font-weight: 800;
+      line-height: 1.1;
+      color: #0f3460;
+      margin-bottom: 12px;
+    }
+
+    .cover-subtitle {
+      font-size: 16pt;
+      color: #4a6fa5;
+      margin-bottom: 40px;
+      font-weight: 400;
+    }
+
+    .cover-divider {
+      width: 60px;
+      height: 4px;
+      background: #e63946;
+      border-radius: 2px;
+      margin-bottom: 32px;
+    }
+
+    .cover-desc {
+      font-size: 12pt;
+      color: #555;
+      max-width: 120mm;
+      line-height: 1.7;
+    }
+
+    .cover-footer {
+      margin-top: auto;
+      padding-top: 20mm;
+      font-size: 9pt;
+      color: #999;
+      border-top: 1px solid #eee;
+      width: 100%;
+    }
+
+    /* ── Seitenumbruch ── */
+    .page-break { page-break-before: always; }
+
+    /* ── Abschnitte ── */
+    .section { margin-bottom: 36px; }
+
+    h1 {
+      font-size: 22pt;
+      color: #0f3460;
+      font-weight: 800;
+      margin-bottom: 6px;
+      padding-bottom: 8px;
+      border-bottom: 3px solid #e63946;
+    }
+
+    h1 .section-num {
+      display: inline-block;
+      background: #e63946;
+      color: #fff;
+      font-size: 11pt;
+      font-weight: 700;
+      width: 28px;
+      height: 28px;
+      line-height: 28px;
+      text-align: center;
+      border-radius: 50%;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+
+    h2 {
+      font-size: 13pt;
+      color: #1a6fb5;
+      font-weight: 700;
+      margin: 22px 0 8px;
+    }
+
+    h3 {
+      font-size: 11pt;
+      color: #0f3460;
+      font-weight: 600;
+      margin: 16px 0 6px;
+    }
+
+    p { margin-bottom: 10px; }
+
+    /* ── Hinweis-Boxen ── */
+    .box {
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 14px 0;
+      font-size: 10.5pt;
+    }
+
+    .box-info {
+      background: #e8f4fd;
+      border-left: 4px solid #1a6fb5;
+      color: #0f3460;
+    }
+
+    .box-tip {
+      background: #eafaf1;
+      border-left: 4px solid #27ae60;
+      color: #1a4a2e;
+    }
+
+    .box-warn {
+      background: #fef9e7;
+      border-left: 4px solid #f39c12;
+      color: #5a3e00;
+    }
+
+    .box strong { font-weight: 700; }
+
+    /* ── Schritt-Liste ── */
+    .steps {
+      counter-reset: step;
+      list-style: none;
+      margin: 14px 0;
+    }
+
+    .steps li {
+      counter-increment: step;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 10.5pt;
+    }
+
+    .steps li::before {
+      content: counter(step);
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      line-height: 22px;
+      text-align: center;
+      background: #0f3460;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 9pt;
+      font-weight: 700;
+    }
+
+    /* ── Tabellen ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10pt;
+      margin: 14px 0;
+    }
+
+    th {
+      background: #0f3460;
+      color: #fff;
+      text-align: left;
+      padding: 8px 12px;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #e8eaed;
+      vertical-align: top;
+    }
+
+    tr:nth-child(even) td { background: #f8f9fc; }
+
+    /* ── Badges / Tags ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 9pt;
+      font-weight: 600;
+    }
+
+    .badge-blue  { background: #e8f4fd; color: #1a6fb5; }
+    .badge-green { background: #eafaf1; color: #27ae60; }
+    .badge-gray  { background: #f0f2f5; color: #555; }
+
+    /* ── Tab-Darstellung ── */
+    .tabs-preview {
+      display: flex;
+      gap: 6px;
+      margin: 12px 0 6px;
+      flex-wrap: wrap;
+    }
+
+    .tab-pill {
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 9.5pt;
+      font-weight: 600;
+      border: 2px solid #dde1e7;
+      color: #555;
+    }
+
+    .tab-pill.active {
+      background: #0f3460;
+      color: #fff;
+      border-color: #0f3460;
+    }
+
+    /* ── Screenshot-Ersatz (Mockup) ── */
+    .mockup {
+      border: 1px solid #dde1e7;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 14px 0;
+      font-size: 9.5pt;
+    }
+
+    .mockup-bar {
+      background: #0f3460;
+      color: #fff;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 9pt;
+      font-weight: 600;
+    }
+
+    .mockup-body {
+      padding: 12px 14px;
+      background: #fafbfc;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    /* ── Navigationspfad ── */
+    .nav-path {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f0f2f5;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 9.5pt;
+      font-weight: 600;
+      color: #0f3460;
+      margin: 6px 0;
+    }
+
+    .nav-path span { color: #aaa; }
+
+    /* ── Checkliste ── */
+    .checklist {
+      list-style: none;
+      margin: 10px 0;
+    }
+
+    .checklist li {
+      padding: 4px 0 4px 24px;
+      position: relative;
+      font-size: 10.5pt;
+    }
+
+    .checklist li::before {
+      content: '☐';
+      position: absolute;
+      left: 0;
+      color: #1a6fb5;
+      font-size: 13pt;
+      line-height: 1;
+    }
+
+    /* ── Inhaltsverzeichnis ── */
+    .toc {
+      margin: 20px 0;
+    }
+
+    .toc-entry {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      padding: 5px 0;
+      border-bottom: 1px dotted #dde1e7;
+      font-size: 11pt;
+    }
+
+    .toc-num {
+      font-weight: 700;
+      color: #e63946;
+      min-width: 24px;
+    }
+
+    .toc-title { color: #0f3460; }
+
+    .toc-dots {
+      flex: 1;
+      border-bottom: 1px dotted #ccc;
+      margin: 0 6px;
+      min-width: 20px;
+    }
+
+    .toc-page { color: #888; font-size: 10pt; }
+
+    /* ── Print ── */
+    @media print {
+      body { font-size: 10.5pt; }
+      .page { padding: 15mm 15mm; }
+      .cover { min-height: 0; padding-bottom: 60mm; }
+      .page-break { page-break-before: always; }
+      .no-break { page-break-inside: avoid; }
+      h1, h2 { page-break-after: avoid; }
+      table { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     TITELSEITE
+══════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="cover">
+    <div class="cover-badge">⚽ JSG Heiligendorf · Hattorf · Mörse</div>
+    <div class="cover-title">Trainingsplan</div>
+    <div class="cover-subtitle">Handbuch für Trainer</div>
+    <div class="cover-divider"></div>
+    <p class="cover-desc">
+      Diese Anleitung erklärt, wie du die Trainingszeitenverwaltung als Trainer nutzt:
+      vom ersten Login bis zur Pflege von Trainingszeiten, Spielterminen und Kader.
+    </p>
+    <div class="cover-footer">
+      Version 1.0 · März 2026 &nbsp;|&nbsp; http://localhost:4000
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     INHALTSVERZEICHNIS
+══════════════════════════════════════════════════════ -->
+<div class="page page-break">
+  <h1 style="margin-bottom:24px">Inhalt</h1>
+  <div class="toc">
+    <div class="toc-entry">
+      <span class="toc-num">1</span>
+      <span class="toc-title">Login &amp; erste Schritte</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">3</span>
+    </div>
+    <div class="toc-entry">
+      <span class="toc-num">2</span>
+      <span class="toc-title">Wochenkalender – Übersicht</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">3</span>
+    </div>
+    <div class="toc-entry">
+      <span class="toc-num">3</span>
+      <span class="toc-title">Mein Bereich – Profil</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">4</span>
+    </div>
+    <div class="toc-entry">
+      <span class="toc-num">4</span>
+      <span class="toc-title">Meine Einheiten – Trainingszeiten verwalten</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">4</span>
+    </div>
+    <div class="toc-entry">
+      <span class="toc-num">5</span>
+      <span class="toc-title">Spiele</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">6</span>
+    </div>
+    <div class="toc-entry">
+      <span class="toc-num">6</span>
+      <span class="toc-title">Meine Teams – Kader pflegen</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">6</span>
+    </div>
+    <div class="toc-entry">
+      <span class="toc-num">7</span>
+      <span class="toc-title">Häufige Fragen</span>
+      <span class="toc-dots"></span>
+      <span class="toc-page">7</span>
+    </div>
+  </div>
+
+  <div class="box box-info" style="margin-top:30px">
+    <strong>Deine Rolle als Trainer:</strong> Du kannst Trainingseinheiten für deine zugeordneten Mannschaften anlegen, bearbeiten und absagen. Spieltermine siehst du ebenfalls. Änderungen an Benutzern, Plätzen oder Standorten sind dem Admin vorbehalten.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     1. LOGIN
+══════════════════════════════════════════════════════ -->
+<div class="page page-break">
+
+  <div class="section">
+    <h1><span class="section-num">1</span> Login &amp; erste Schritte</h1>
+
+    <p>Öffne die App im Browser und melde dich mit deiner E-Mail-Adresse und dem Passwort an, das dir der Admin mitgeteilt hat.</p>
+
+    <div class="mockup no-break">
+      <div class="mockup-bar">⚽ Trainingsplan · Anmelden</div>
+      <div class="mockup-body">
+        <strong>E-Mail-Adresse</strong><br>
+        <span style="display:inline-block;border:1px solid #ccc;border-radius:4px;padding:4px 10px;margin:4px 0 10px;min-width:200px;background:#fff;color:#888">trainer@verein.de</span><br>
+        <strong>Passwort</strong><br>
+        <span style="display:inline-block;border:1px solid #ccc;border-radius:4px;padding:4px 10px;margin:4px 0 10px;min-width:200px;background:#fff;color:#888">••••••••</span><br>
+        <span style="display:inline-block;background:#0f3460;color:#fff;padding:6px 18px;border-radius:6px;font-weight:600;font-size:9.5pt">Anmelden</span>
+      </div>
+    </div>
+
+    <div class="box box-warn no-break">
+      <strong>Beim ersten Login:</strong> Ändere dein Passwort sofort unter <em>Mein Bereich → Mein Profil → Passwort ändern</em>. Das Standard-Passwort ist für alle sichtbar.
+    </div>
+
+    <p>Nach dem Login landest du auf dem <strong>Wochenkalender</strong>. Oben rechts siehst du deinen Namen. Über die Navigation erreichst du <strong>Wochenplan</strong> und <strong>Mein Bereich</strong>.</p>
+  </div>
+
+  <!-- ── 2. Wochenkalender ── -->
+  <div class="section">
+    <h1><span class="section-num">2</span> Wochenkalender – Übersicht</h1>
+
+    <p>Der Wochenkalender zeigt alle Trainingseinheiten und Spieltermine der aktuellen Woche – aufgeteilt nach Standort und Platz.</p>
+
+    <h2>Ansicht wechseln</h2>
+    <table class="no-break">
+      <thead><tr><th>Element</th><th>Bedeutung</th></tr></thead>
+      <tbody>
+        <tr><td>Pfeil ‹ ›</td><td>Eine Woche vor/zurück blättern</td></tr>
+        <tr><td>Button „Heute"</td><td>Zur aktuellen Woche zurückspringen</td></tr>
+        <tr><td>Standort-Auswahl</td><td>Nur Plätze eines bestimmten Standorts anzeigen (z. B. Hauptgelände)</td></tr>
+        <tr><td>Farbige Karten</td><td>Jede Mannschaft hat eine eigene Farbe – erkennbar an der farbigen Markierung</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Was bedeuten die Symbole?</h2>
+    <table class="no-break">
+      <thead><tr><th>Symbol / Anzeige</th><th>Bedeutung</th></tr></thead>
+      <tbody>
+        <tr><td>🏃 (ohne Zusatz)</td><td>Reguläre Trainingseinheit</td></tr>
+        <tr><td>🏆</td><td>Spieltermin (Heim oder Auswärts)</td></tr>
+        <tr><td><span style="text-decoration:line-through">Einheit (durchgestrichen)</span></td><td>Abgesagt (z. B. wegen Spieltermin)</td></tr>
+        <tr><td>Hinweis-Text</td><td>Notiz des Trainers zur Einheit</td></tr>
+      </tbody>
+    </table>
+
+    <div class="box box-tip">
+      <strong>Tipp:</strong> Der Wochenkalender ist für alle Trainer lesbar. Änderungen nimmst du im Tab <em>Meine Einheiten</em> vor.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     3. PROFIL
+══════════════════════════════════════════════════════ -->
+<div class="page page-break">
+
+  <div class="section">
+    <h1><span class="section-num">3</span> Mein Bereich – Profil</h1>
+
+    <div class="nav-path">Mein Bereich <span>›</span> 👤 Mein Profil</div>
+
+    <p>Hier pflegst du deine persönlichen Daten, deinen Standard-Standort und dein Passwort.</p>
+
+    <div class="tabs-preview">
+      <div class="tab-pill active">👤 Mein Profil</div>
+      <div class="tab-pill">🏃 Meine Einheiten</div>
+      <div class="tab-pill">🏆 Spiele</div>
+      <div class="tab-pill">👥 Meine Teams</div>
+    </div>
+
+    <h2>Profildaten ändern</h2>
+    <ol class="steps">
+      <li>Name und/oder E-Mail-Adresse anpassen.</li>
+      <li>Auf <strong>Profil speichern</strong> klicken.</li>
+    </ol>
+    <div class="box box-info">
+      <strong>Hinweis:</strong> Deine Mannschaft(en) werden nur angezeigt – sie können ausschließlich vom Admin geändert werden.
+    </div>
+
+    <h2>Standard-Standort festlegen</h2>
+    <p>Wenn der Kalender immer einen bestimmten Standort vorauswählen soll, wähle ihn hier aus und speichere. Beim nächsten Öffnen des Wochenkalenders ist dieser Standort bereits aktiv.</p>
+
+    <h2>Passwort ändern</h2>
+    <ol class="steps">
+      <li>Aktuelles Passwort eingeben.</li>
+      <li>Neues Passwort eingeben (mindestens 8 Zeichen).</li>
+      <li>Neues Passwort bestätigen.</li>
+      <li>Auf <strong>Passwort speichern</strong> klicken.</li>
+    </ol>
+    <div class="box box-warn">
+      <strong>Sicherheit:</strong> Wähle ein starkes Passwort. Teile es nie mit anderen.
+    </div>
+  </div>
+
+  <!-- ── 4. EINHEITEN ── -->
+  <div class="section">
+    <h1><span class="section-num">4</span> Meine Einheiten – Trainingszeiten verwalten</h1>
+
+    <div class="nav-path">Mein Bereich <span>›</span> 🏃 Meine Einheiten</div>
+
+    <p>Hier siehst du alle Trainingseinheiten deiner Mannschaften und kannst neue anlegen, bestehende bearbeiten oder absagen.</p>
+  </div>
+</div>
+
+<!-- Einheiten (Fortsetzung) -->
+<div class="page page-break">
+
+  <div class="section">
+    <h2>Trainingseinheit anlegen</h2>
+    <ol class="steps">
+      <li>Button <strong>+ Neue Einheit</strong> klicken.</li>
+      <li>Datum, Uhrzeit (von/bis) und Platz auswählen.</li>
+      <li>Mannschaft(en) zuordnen (nur deine Teams sind auswählbar).</li>
+      <li>Optional: Notiz eintragen (z. B. „Konditionstest").</li>
+      <li>Soll die Einheit regelmäßig stattfinden? Haken bei <strong>Wiederholen</strong> setzen und Enddatum wählen.</li>
+      <li>Auf <strong>Speichern</strong> klicken.</li>
+    </ol>
+
+    <div class="box box-tip">
+      <strong>Wiederkehrende Einheiten:</strong> Eine einmalig angelegte Wiederholungsserie (z. B. jeden Dienstag 17:00–18:30) muss nur einmal erstellt werden. Ausnahmen (z. B. Feiertage) kannst du einzeln absagen.
+    </div>
+
+    <h2>Trainingseinheit bearbeiten</h2>
+    <p>Klicke auf eine Einheit in der Liste. Es öffnet sich ein Bearbeitungsdialog. Bei <strong>Wiederholungsserien</strong> wirst du gefragt, was du ändern möchtest:</p>
+
+    <table class="no-break">
+      <thead><tr><th>Option</th><th>Was wird geändert?</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Nur diese Einheit</strong></td>
+          <td>Nur der gewählte Termin wird geändert. Alle anderen bleiben unverändert.</td>
+        </tr>
+        <tr>
+          <td><strong>Alle zukünftigen</strong></td>
+          <td>Der gewählte Termin und alle folgenden Termine der Serie werden angepasst.</td>
+        </tr>
+        <tr>
+          <td><strong>Gesamte Serie</strong></td>
+          <td>Alle Einheiten der Serie (auch vergangene) werden geändert.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Trainingseinheit absagen</h2>
+    <ol class="steps">
+      <li>Einheit in der Liste anklicken.</li>
+      <li>Button <strong>Absagen</strong> wählen.</li>
+      <li>Im Kalender erscheint die Einheit dann durchgestrichen.</li>
+    </ol>
+    <div class="box box-info">
+      Eine abgesagte Einheit wird <em>nicht</em> gelöscht, sondern nur als abgesagt markiert. Sie ist im Kalender weiterhin sichtbar. Wenn ein Spieltermin auf einen Trainingstag fällt, wird das Training automatisch abgesagt.
+    </div>
+
+    <h2>Trainingseinheit löschen</h2>
+    <p>Im Bearbeitungsdialog gibt es den Button <strong>Löschen</strong>. Auch hier wird bei Serien gefragt, welcher Umfang gelöscht werden soll. Gelöschte Einheiten verschwinden vollständig aus dem Kalender.</p>
+
+    <h2>Übersicht – Was du siehst</h2>
+    <table class="no-break">
+      <thead><tr><th>Spalte</th><th>Bedeutung</th></tr></thead>
+      <tbody>
+        <tr><td>Datum</td><td>Tag der Einheit</td></tr>
+        <tr><td>Zeit</td><td>Von – Bis</td></tr>
+        <tr><td>Platz</td><td>Zugeordneter Platz</td></tr>
+        <tr><td>Mannschaft(en)</td><td>Welche Teams trainieren</td></tr>
+        <tr><td>Status</td><td>Aktiv / Abgesagt / Ausnahme</td></tr>
+        <tr><td>Notiz</td><td>Freitext-Hinweis</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     5. SPIELE
+══════════════════════════════════════════════════════ -->
+<div class="page page-break">
+
+  <div class="section">
+    <h1><span class="section-num">5</span> Spiele</h1>
+
+    <div class="nav-path">Mein Bereich <span>›</span> 🏆 Spiele</div>
+
+    <p>Im Tab <strong>Spiele</strong> siehst du alle Spieltermine deiner Mannschaften für die aktive Saison – Heim- und Auswärtsspiele.</p>
+
+    <table class="no-break">
+      <thead><tr><th>Information</th><th>Bedeutung</th></tr></thead>
+      <tbody>
+        <tr><td>Datum / Uhrzeit</td><td>Anpfiff des Spiels</td></tr>
+        <tr><td>Gegner</td><td>Name der gegnerischen Mannschaft</td></tr>
+        <tr><td>Heim / Auswärts</td><td>Austragungsort: eigenes Gelände oder beim Gegner</td></tr>
+        <tr><td>Spielstätte</td><td>Adresse / Name des Stadions (bei Auswärtsspielen)</td></tr>
+        <tr><td>Platz</td><td>Bei Hemspielen: welcher Platz wird genutzt</td></tr>
+      </tbody>
+    </table>
+
+    <div class="box box-info no-break">
+      <strong>Hinweis:</strong> Spieltermine werden vom Admin angelegt oder via fussball.de-Import eingelesen. Als Trainer kannst du die Spieltermine nur einsehen. Wenn ein Heimspiel einen Platz belegt, werden Trainingseinheiten auf diesem Platz automatisch abgesagt.
+    </div>
+
+    <h2>fussball.de-Import (falls aktiviert)</h2>
+    <p>Wenn deine Mannschaft eine fussball.de-Team-ID hat, erscheint im Tab <em>Spiele</em> ein Button <strong>„Spiele abrufen: [Mannschaftsname]"</strong>. Damit werden aktuelle Spieltermine direkt von fussball.de geladen und können mit einem Klick importiert werden.</p>
+    <ol class="steps">
+      <li>Button <strong>Spiele abrufen</strong> klicken.</li>
+      <li>Die gefundenen Spiele werden in einem Dialog angezeigt.</li>
+      <li>Gewünschte Spiele auswählen und auf <strong>Importieren</strong> klicken.</li>
+    </ol>
+  </div>
+
+  <!-- ── 6. KADER ── -->
+  <div class="section">
+    <h1><span class="section-num">6</span> Meine Teams – Kader pflegen</h1>
+
+    <div class="nav-path">Mein Bereich <span>›</span> 👥 Meine Teams</div>
+
+    <p>Hier pflegst du die Kaderzahlen deiner Mannschaften. Diese Übersicht dient der Planung und wird im Excel-Export ausgegeben.</p>
+
+    <h2>Kaderzahlen eintragen</h2>
+    <p>Pro Mannschaft siehst du eine Tabelle mit Jahrgang, Geschlecht und Verein (TSV / MTV / TSG). Trage in das Zahlenfeld ein, wie viele Spieler in dieser Kategorie aktuell zum Kader gehören.</p>
+
+    <ol class="steps">
+      <li>Zahl in das Eingabefeld tippen oder mit den Pfeilen anpassen.</li>
+      <li>Button <strong>Kader speichern</strong> klicken.</li>
+    </ol>
+
+    <div class="box box-tip no-break">
+      <strong>Tipp:</strong> Halte die Kaderzahlen aktuell – sie fließen in den Saisonbericht ein, den der Admin exportieren kann.
+    </div>
+
+    <table class="no-break">
+      <thead><tr><th>Spalte</th><th>Bedeutung</th></tr></thead>
+      <tbody>
+        <tr><td>Jahrgang</td><td>Geburtsjahr der Spieler</td></tr>
+        <tr><td>Geschlecht</td><td>m = männlich, w = weiblich</td></tr>
+        <tr><td>Verein</td><td>TSV, MTV oder TSG (bei Spielgemeinschaften)</td></tr>
+        <tr><td>Anzahl</td><td>Aktuelle Spieleranzahl in dieser Gruppe</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     7. FAQ
+══════════════════════════════════════════════════════ -->
+<div class="page page-break">
+
+  <div class="section">
+    <h1><span class="section-num">7</span> Häufige Fragen</h1>
+
+    <h3>Ich sehe meine Mannschaft nicht im Kalender.</h3>
+    <p>Der Kalender zeigt standardmäßig einen Standort an. Prüfe, ob der richtige Standort ausgewählt ist. Falls deine Mannschaft keinem Platz an diesem Standort zugeordnet ist, wende dich an den Admin.</p>
+
+    <h3>Ich kann eine Einheit nicht bearbeiten.</h3>
+    <p>Du kannst nur Einheiten bearbeiten, die deiner Mannschaft zugeordnet sind. Einheiten anderer Teams sind für dich schreibgeschützt. Auch kann es sein, dass die zugehörige Saison nicht mehr aktiv ist.</p>
+
+    <h3>Ein Spieltermin hat mein Training automatisch abgesagt – was nun?</h3>
+    <p>Das ist so gewollt. Wenn ein Heimspiel einen Platz belegt, wird das Training auf diesem Platz für diesen Tag abgesagt. Du kannst im Tab <em>Meine Einheiten</em> nachschauen, welche Einheiten betroffen sind. Bei Bedarf kann der Admin den Spieltermin anpassen.</p>
+
+    <h3>Kann ich Trainingseinheiten in der Vergangenheit anlegen?</h3>
+    <p>Ja, technisch ist das möglich. Vergangene Einheiten erscheinen im Kalender, wenn man die entsprechende Woche aufruft.</p>
+
+    <h3>Wie ändere ich die Farbe meiner Mannschaft?</h3>
+    <p>Mannschaftsfarben werden vom Admin festgelegt. Bitte wende dich bei Bedarf an den Admin.</p>
+
+    <h3>Ich habe mein Passwort vergessen.</h3>
+    <p>Wende dich an den Admin. Dieser kann dein Passwort zurücksetzen.</p>
+
+    <h3>Kann ich Trainingszeiten als PDF ausdrucken?</h3>
+    <p>Ja! Im Wochenkalender gibt es einen Export-Button. Du kannst die aktuelle Woche als PDF exportieren oder den Browser-Druckdialog (Strg+P / Cmd+P) nutzen.</p>
+
+    <h3>Wer ist mein Admin?</h3>
+    <p>Frage bei der Vereinsleitung nach. Der Admin ist unter <strong>admin@verein.de</strong> erreichbar (oder einer anderen von euch genutzten E-Mail-Adresse).</p>
+  </div>
+
+  <!-- Schnellreferenz -->
+  <div class="section">
+    <h1 style="margin-top:30px">Schnellreferenz</h1>
+
+    <table>
+      <thead><tr><th>Aufgabe</th><th>Weg</th></tr></thead>
+      <tbody>
+        <tr><td>Wochenplan ansehen</td><td>Startseite → Wochenplan</td></tr>
+        <tr><td>Standort wechseln</td><td>Wochenplan → Standort-Auswahl oben</td></tr>
+        <tr><td>Trainingseinheit anlegen</td><td>Mein Bereich → Meine Einheiten → + Neue Einheit</td></tr>
+        <tr><td>Einheit absagen</td><td>Mein Bereich → Meine Einheiten → Einheit klicken → Absagen</td></tr>
+        <tr><td>Spieltermine einsehen</td><td>Mein Bereich → Spiele</td></tr>
+        <tr><td>Kaderzahlen pflegen</td><td>Mein Bereich → Meine Teams</td></tr>
+        <tr><td>Passwort ändern</td><td>Mein Bereich → Mein Profil → Passwort ändern</td></tr>
+        <tr><td>Standard-Standort setzen</td><td>Mein Bereich → Mein Profil → Standard-Standort</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>
