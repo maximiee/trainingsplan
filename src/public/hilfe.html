@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hilfe – Trainingsplan</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/admin.css">
+  <style>
+    .help-body { max-width: 820px; }
+
+    .help-hero {
+      background: linear-gradient(135deg, var(--primary) 0%, #3a6ea5 100%);
+      border-radius: 12px;
+      padding: 32px 36px;
+      color: white;
+      margin-bottom: 28px;
+    }
+    .help-hero h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+    .help-hero p  { opacity: 0.85; font-size: 15px; }
+
+    .help-toc {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 28px;
+    }
+    .help-toc h2 { font-size: 14px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+    .help-toc-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .help-toc-list a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 10px;
+      border-radius: 7px;
+      text-decoration: none;
+      color: var(--text);
+      font-size: 14px;
+      transition: background 0.12s;
+    }
+    .help-toc-list a:hover { background: var(--bg); color: var(--accent); }
+    .help-toc-list .toc-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .help-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px 32px;
+      margin-bottom: 20px;
+      scroll-margin-top: 72px;
+    }
+    .help-section h2 {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .help-section h2 .sec-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .help-section h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--primary);
+      margin: 20px 0 8px;
+    }
+    .help-section p  { margin-bottom: 10px; font-size: 14px; line-height: 1.65; }
+    .help-section ul { margin: 8px 0 12px 20px; }
+    .help-section ul li { margin-bottom: 5px; font-size: 14px; line-height: 1.6; }
+
+    .help-box {
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 14px 0;
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+    .help-box-info   { background: #e8f4fd; border-left: 4px solid var(--accent); }
+    .help-box-tip    { background: #eafaf1; border-left: 4px solid var(--success); }
+    .help-box-warn   { background: #fef9e7; border-left: 4px solid var(--warning); }
+
+    .help-steps { counter-reset: step; list-style: none; margin: 10px 0 14px; padding: 0; }
+    .help-steps li {
+      counter-increment: step;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .help-steps li::before {
+      content: counter(step);
+      flex-shrink: 0;
+      width: 22px; height: 22px;
+      line-height: 22px;
+      text-align: center;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .help-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13.5px; }
+    .help-table th { background: var(--bg); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); padding: 9px 12px; text-align: left; border-bottom: 2px solid var(--border); }
+    .help-table td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .help-table tr:last-child td { border-bottom: none; }
+    .help-table tr:hover td { background: #f8f9fa; }
+
+    .nav-path {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--primary);
+      margin-bottom: 14px;
+    }
+    .nav-path .sep { color: var(--text-muted); }
+
+    .faq-item { margin-bottom: 18px; }
+    .faq-q { font-weight: 600; font-size: 14px; margin-bottom: 5px; color: var(--primary); }
+    .faq-a { font-size: 14px; color: var(--text); line-height: 1.65; }
+
+    .quick-ref-table { width: 100%; }
+
+    @media (max-width: 600px) {
+      .help-section { padding: 18px 16px; }
+      .help-hero    { padding: 22px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" class="brand">⚽ Trainingsplan</a>
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="Menü öffnen" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-menu" id="nav-menu">
+    <nav>
+      <a href="/">Wochenplan</a>
+      <a href="/trainer.html" id="nav-trainer" style="display:none">Mein Bereich</a>
+      <a href="/admin.html" id="nav-admin" style="display:none">Admin</a>
+      <a href="/hilfe.html" class="active">Hilfe</a>
+    </nav>
+    <span class="user-info" id="nav-user"></span>
+    <button class="btn-logout" id="btn-logout">Abmelden</button>
+  </div>
+</nav>
+
+<div class="page help-body">
+
+  <!-- Hero -->
+  <div class="help-hero">
+    <h1>📖 Hilfe &amp; Bedienungsanleitung</h1>
+    <p>Alles, was du als Trainer über die Trainingszeitenverwaltung wissen musst.</p>
+  </div>
+
+  <!-- Inhaltsverzeichnis -->
+  <div class="help-toc">
+    <h2>Inhalt</h2>
+    <ul class="help-toc-list">
+      <li><a href="#login"><span class="toc-num">1</span> Login &amp; erste Schritte</a></li>
+      <li><a href="#kalender"><span class="toc-num">2</span> Wochenkalender – Übersicht</a></li>
+      <li><a href="#profil"><span class="toc-num">3</span> Mein Bereich – Profil</a></li>
+      <li><a href="#einheiten"><span class="toc-num">4</span> Meine Einheiten – Trainingszeiten verwalten</a></li>
+      <li><a href="#spiele"><span class="toc-num">5</span> Spiele</a></li>
+      <li><a href="#kader"><span class="toc-num">6</span> Meine Teams – Kader pflegen</a></li>
+      <li><a href="#faq"><span class="toc-num">7</span> Häufige Fragen</a></li>
+      <li><a href="#quick"><span class="toc-num">✓</span> Schnellreferenz</a></li>
+    </ul>
+  </div>
+
+  <!-- ── 1. Login ── -->
+  <div class="help-section" id="login">
+    <h2><span class="sec-num">1</span> Login &amp; erste Schritte</h2>
+    <p>Öffne die App im Browser und melde dich mit deiner E-Mail-Adresse und dem Passwort an, das dir der Admin mitgeteilt hat.</p>
+    <div class="help-box help-box-warn">
+      <strong>Beim ersten Login:</strong> Ändere dein Passwort sofort unter <em>Mein Bereich → Mein Profil → Passwort ändern</em>. Das Startpasswort ist nicht sicher.
+    </div>
+    <p>Nach dem Login landest du auf dem <strong>Wochenkalender</strong>. Über die Navigation oben erreichst du <strong>Wochenplan</strong>, <strong>Mein Bereich</strong> und diese <strong>Hilfe</strong>-Seite.</p>
+  </div>
+
+  <!-- ── 2. Wochenkalender ── -->
+  <div class="help-section" id="kalender">
+    <h2><span class="sec-num">2</span> Wochenkalender – Übersicht</h2>
+    <p>Der Wochenkalender zeigt alle Trainingseinheiten und Spieltermine der aktuellen Woche, aufgeteilt nach Standort und Platz.</p>
+
+    <h3>Ansicht steuern</h3>
+    <table class="help-table">
+      <thead><tr><th>Element</th><th>Funktion</th></tr></thead>
+      <tbody>
+        <tr><td>Pfeil ‹ ›</td><td>Eine Woche vor/zurück blättern</td></tr>
+        <tr><td>Button „Heute"</td><td>Zurück zur aktuellen Woche</td></tr>
+        <tr><td>Standort-Auswahl</td><td>Nur Plätze eines Standorts anzeigen</td></tr>
+        <tr><td>Wochentage / Wochenende / Ganze Woche</td><td>Ansichtsmodus umschalten</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Symbole &amp; Farben</h3>
+    <table class="help-table">
+      <thead><tr><th>Anzeige</th><th>Bedeutung</th></tr></thead>
+      <tbody>
+        <tr><td>Farbige Karte</td><td>Trainingseinheit – Farbe entspricht der Mannschaft</td></tr>
+        <tr><td>🏆</td><td>Spieltermin (Heim- oder Auswärtsspiel)</td></tr>
+        <tr><td><span style="text-decoration:line-through">Durchgestrichen</span></td><td>Abgesagte Einheit</td></tr>
+        <tr><td>Kursiver Text</td><td>Notiz des Trainers</td></tr>
+      </tbody>
+    </table>
+
+    <div class="help-box help-box-tip">
+      <strong>Tipp:</strong> Eigene Einheiten bearbeitest du nicht hier, sondern im Tab <em>Meine Einheiten</em> unter <em>Mein Bereich</em>.
+    </div>
+  </div>
+
+  <!-- ── 3. Profil ── -->
+  <div class="help-section" id="profil">
+    <h2><span class="sec-num">3</span> Mein Bereich – Profil</h2>
+    <div class="nav-path">Mein Bereich <span class="sep">›</span> 👤 Mein Profil</div>
+
+    <h3>Profildaten ändern</h3>
+    <ol class="help-steps">
+      <li>Name und/oder E-Mail-Adresse anpassen.</li>
+      <li>Auf <strong>Profil speichern</strong> klicken.</li>
+    </ol>
+    <div class="help-box help-box-info">
+      Deine zugeordneten Mannschaften werden nur angezeigt – Änderungen daran kann nur der Admin vornehmen.
+    </div>
+
+    <h3>Standard-Standort festlegen</h3>
+    <p>Wähle einen Standort aus und klicke auf <strong>Speichern</strong>. Der Wochenkalender öffnet beim nächsten Aufruf direkt mit diesem Standort.</p>
+
+    <h3>Passwort ändern</h3>
+    <ol class="help-steps">
+      <li>Aktuelles Passwort eingeben.</li>
+      <li>Neues Passwort eingeben (mindestens 8 Zeichen).</li>
+      <li>Neues Passwort bestätigen.</li>
+      <li>Auf <strong>Passwort speichern</strong> klicken.</li>
+    </ol>
+  </div>
+
+  <!-- ── 4. Einheiten ── -->
+  <div class="help-section" id="einheiten">
+    <h2><span class="sec-num">4</span> Meine Einheiten – Trainingszeiten verwalten</h2>
+    <div class="nav-path">Mein Bereich <span class="sep">›</span> 🏃 Meine Einheiten</div>
+    <p>Hier siehst du alle Trainingseinheiten deiner Mannschaften und kannst neue anlegen, bearbeiten oder absagen.</p>
+
+    <h3>Neue Einheit anlegen</h3>
+    <ol class="help-steps">
+      <li>Button <strong>+ Neue Einheit</strong> klicken.</li>
+      <li>Datum, Uhrzeit (von/bis) und Platz auswählen.</li>
+      <li>Mannschaft(en) zuordnen – nur deine Teams sind wählbar.</li>
+      <li>Optional: Notiz eintragen (z. B. „Konditionstest").</li>
+      <li>Soll die Einheit regelmäßig stattfinden? Haken bei <strong>Wiederholen</strong> setzen und Enddatum wählen.</li>
+      <li><strong>Speichern</strong> klicken.</li>
+    </ol>
+    <div class="help-box help-box-tip">
+      <strong>Wiederkehrende Einheiten:</strong> Eine Wiederholungsserie (z. B. jeden Dienstag 17:00–18:30) muss nur einmal erstellt werden. Ausnahmen kannst du einzeln absagen.
+    </div>
+
+    <h3>Einheit bearbeiten</h3>
+    <p>Klicke auf eine Einheit in der Liste. Bei <strong>Wiederholungsserien</strong> wirst du gefragt, welchen Umfang du ändern möchtest:</p>
+    <table class="help-table">
+      <thead><tr><th>Option</th><th>Was wird geändert?</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Nur diese Einheit</strong></td><td>Nur der gewählte Termin wird geändert.</td></tr>
+        <tr><td><strong>Alle zukünftigen</strong></td><td>Dieser und alle folgenden Termine der Serie.</td></tr>
+        <tr><td><strong>Gesamte Serie</strong></td><td>Alle Einheiten der Serie (auch vergangene).</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Einheit absagen</h3>
+    <ol class="help-steps">
+      <li>Einheit in der Liste anklicken.</li>
+      <li><strong>Absagen</strong> wählen.</li>
+    </ol>
+    <div class="help-box help-box-info">
+      Eine abgesagte Einheit wird nicht gelöscht, sondern nur als abgesagt markiert und im Kalender durchgestrichen angezeigt. Fällt ein Spieltermin auf einen Trainingstag, wird das Training auf diesem Platz automatisch abgesagt.
+    </div>
+
+    <h3>Einheit löschen</h3>
+    <p>Im Bearbeitungsdialog: Button <strong>Löschen</strong> wählen. Bei Serien wird auch hier nach dem Umfang gefragt. Gelöschte Einheiten verschwinden vollständig.</p>
+  </div>
+
+  <!-- ── 5. Spiele ── -->
+  <div class="help-section" id="spiele">
+    <h2><span class="sec-num">5</span> Spiele</h2>
+    <div class="nav-path">Mein Bereich <span class="sep">›</span> 🏆 Spiele</div>
+    <p>Hier siehst du alle Spieltermine deiner Mannschaften für die aktive Saison.</p>
+    <table class="help-table">
+      <thead><tr><th>Spalte</th><th>Bedeutung</th></tr></thead>
+      <tbody>
+        <tr><td>Datum / Uhrzeit</td><td>Anpfiff</td></tr>
+        <tr><td>Gegner</td><td>Name der gegnerischen Mannschaft</td></tr>
+        <tr><td>Heim / Auswärts</td><td>Eigenes Gelände oder beim Gegner</td></tr>
+        <tr><td>Spielstätte</td><td>Adresse bei Auswärtsspielen</td></tr>
+        <tr><td>Platz</td><td>Genutzter Platz bei Heimspielen</td></tr>
+      </tbody>
+    </table>
+    <div class="help-box help-box-info">
+      Spieltermine werden vom Admin angelegt oder per fussball.de-Import eingelesen. Als Trainer kannst du sie nur einsehen.
+    </div>
+
+    <h3>fussball.de-Import (falls hinterlegt)</h3>
+    <p>Hat deine Mannschaft eine fussball.de-Team-ID, erscheint ein Button <strong>„Spiele abrufen: [Mannschaftsname]"</strong>.</p>
+    <ol class="help-steps">
+      <li>Button <strong>Spiele abrufen</strong> klicken.</li>
+      <li>Gefundene Spiele im Dialog prüfen.</li>
+      <li>Gewünschte Spiele auswählen und auf <strong>Importieren</strong> klicken.</li>
+    </ol>
+  </div>
+
+  <!-- ── 6. Kader ── -->
+  <div class="help-section" id="kader">
+    <h2><span class="sec-num">6</span> Meine Teams – Kader pflegen</h2>
+    <div class="nav-path">Mein Bereich <span class="sep">›</span> 👥 Meine Teams</div>
+    <p>Hier pflegst du die Kaderzahlen deiner Mannschaften nach Jahrgang, Geschlecht und Verein (TSV Heiligendorf / MTV Hattorf / TSG Mörse).</p>
+    <ol class="help-steps">
+      <li>Zahl in das Eingabefeld tippen oder mit den Pfeilen anpassen.</li>
+      <li><strong>Kader speichern</strong> klicken.</li>
+    </ol>
+    <div class="help-box help-box-tip">
+      Aktuelle Kaderzahlen fließen in den Saisonbericht ein, den der Admin als Excel exportieren kann.
+    </div>
+  </div>
+
+  <!-- ── 7. FAQ ── -->
+  <div class="help-section" id="faq">
+    <h2><span class="sec-num">7</span> Häufige Fragen</h2>
+
+    <div class="faq-item">
+      <div class="faq-q">Ich sehe meine Mannschaft nicht im Kalender.</div>
+      <div class="faq-a">Prüfe, ob der richtige Standort ausgewählt ist. Falls deine Mannschaft dort keinem Platz zugeordnet ist, wende dich an den Admin.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Ich kann eine Einheit nicht bearbeiten.</div>
+      <div class="faq-a">Du kannst nur Einheiten bearbeiten, die deiner Mannschaft zugeordnet sind. Einheiten anderer Teams sind für dich schreibgeschützt. Prüfe auch, ob die Saison noch aktiv ist.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Ein Spieltermin hat mein Training automatisch abgesagt.</div>
+      <div class="faq-a">Das ist so gewollt: Wenn ein Heimspiel einen Platz belegt, wird das Training auf diesem Platz für diesen Tag automatisch abgesagt. Bei Bedarf kann der Admin den Spieltermin anpassen.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Kann ich Trainingseinheiten in der Vergangenheit anlegen?</div>
+      <div class="faq-a">Ja, das ist technisch möglich. Vergangene Einheiten sind sichtbar, wenn man die entsprechende Woche im Kalender aufruft.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Wie ändere ich die Farbe meiner Mannschaft?</div>
+      <div class="faq-a">Mannschaftsfarben legt der Admin fest. Bitte wende dich bei Bedarf an ihn.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Ich habe mein Passwort vergessen.</div>
+      <div class="faq-a">Wende dich an den Admin: <a href="mailto:marco.paetz@tsv-heiligendorf.de">marco.paetz@tsv-heiligendorf.de</a>. Er kann dein Passwort zurücksetzen.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Kann ich den Trainingsplan ausdrucken?</div>
+      <div class="faq-a">Ja – im Wochenkalender gibt es einen Export-Button für PDF und Excel. Alternativ: Strg+P / Cmd+P im Browser.</div>
+    </div>
+  </div>
+
+  <!-- ── Schnellreferenz ── -->
+  <div class="help-section" id="quick">
+    <h2><span class="sec-num">✓</span> Schnellreferenz</h2>
+    <table class="help-table quick-ref-table">
+      <thead><tr><th>Aufgabe</th><th>Weg</th></tr></thead>
+      <tbody>
+        <tr><td>Wochenplan ansehen</td><td>Startseite → Wochenplan</td></tr>
+        <tr><td>Standort wechseln</td><td>Wochenplan → Standort-Auswahl oben</td></tr>
+        <tr><td>Trainingseinheit anlegen</td><td>Mein Bereich → Meine Einheiten → + Neue Einheit</td></tr>
+        <tr><td>Einheit absagen</td><td>Mein Bereich → Meine Einheiten → Einheit klicken → Absagen</td></tr>
+        <tr><td>Spieltermine einsehen</td><td>Mein Bereich → Spiele</td></tr>
+        <tr><td>Kaderzahlen pflegen</td><td>Mein Bereich → Meine Teams</td></tr>
+        <tr><td>Passwort ändern</td><td>Mein Bereich → Mein Profil → Passwort ändern</td></tr>
+        <tr><td>Standard-Standort setzen</td><td>Mein Bereich → Mein Profil → Standard-Standort</td></tr>
+        <tr><td>Admin kontaktieren</td><td><a href="mailto:marco.paetz@tsv-heiligendorf.de">marco.paetz@tsv-heiligendorf.de</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+async function init() {
+  const user = await loadCurrentUser();
+  const el = document.getElementById('nav-user');
+  if (el) el.textContent = user.name;
+  const trainerLink = document.getElementById('nav-trainer');
+  if (trainerLink) trainerLink.style.display = user.role === 'trainer' ? '' : 'none';
+  const adminLink = document.getElementById('nav-admin');
+  if (adminLink) adminLink.style.display = user.role === 'admin' ? '' : 'none';
+  setupLogout();
+  setupHamburger();
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
