@@ -788,19 +788,29 @@ async function openEditSessionModal(session) {
   // Datum vorbelegen
   form.querySelector('[name=single_date]').value = session.date;
 
-  // Teams-Checkboxen
+  // Teams-Checkboxen (nur Admin darf Teams ändern)
   const teamBox = document.getElementById('cal-teams-checks');
   const sessionTeamIds = (session.teams || []).map(t => t.id);
-  const allTeams = await api.get('/api/teams');
-  teamBox.innerHTML = allTeams.filter(t => t.is_active).map(t => `
-    <label class="checkbox-item">
-      <input type="checkbox" name="teamIds" value="${t.id}" ${sessionTeamIds.includes(t.id) ? 'checked' : ''}>
-      <span class="color-dot" style="background:${t.color}"></span>${t.name}
-    </label>`).join('');
+  if (userRole === 'admin') {
+    const allTeams = await api.get('/api/teams');
+    teamBox.innerHTML = allTeams.filter(t => t.is_active).map(t => `
+      <label class="checkbox-item">
+        <input type="checkbox" name="teamIds" value="${t.id}" ${sessionTeamIds.includes(t.id) ? 'checked' : ''}>
+        <span class="color-dot" style="background:${t.color}"></span>${t.name}
+      </label>`).join('');
+  } else {
+    teamBox.innerHTML = (session.teams || []).map(t => `
+      <label class="checkbox-item">
+        <input type="checkbox" name="teamIds" value="${t.id}" checked disabled>
+        <span class="color-dot" style="background:${t.color}"></span>${t.name}
+      </label>`).join('');
+  }
 
   form.onsubmit = async (e) => {
     e.preventDefault();
-    const teamIds = [...form.querySelectorAll('[name=teamIds]:checked')].map(el => parseInt(el.value));
+    const teamIds = userRole === 'admin'
+      ? [...form.querySelectorAll('[name=teamIds]:checked')].map(el => parseInt(el.value))
+      : (session.teams || []).map(t => t.id);
     const date = form.querySelector('[name=single_date]').value;
     if (!date) { alert('Bitte ein Datum auswählen.'); return; }
 
