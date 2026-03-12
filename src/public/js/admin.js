@@ -1004,6 +1004,7 @@ async function renderSquadOverview() {
         <td style="text-align:center;color:var(--text-muted)">–</td>
         <td style="text-align:center;color:var(--text-muted)">–</td>
         <td style="text-align:center;color:var(--text-muted)">–</td>
+        <td></td>
       `;
       tbody.appendChild(tr);
       continue;
@@ -1019,6 +1020,8 @@ async function renderSquadOverview() {
     }
     rows.sort((a, b) => b.year - a.year || a.verein.localeCompare(b.verein));
 
+    const squadDataAttr = encodeURIComponent(JSON.stringify(team.squad));
+
     rows.forEach((row, i) => {
       const tr = document.createElement('tr');
       if (i === 0) {
@@ -1033,6 +1036,10 @@ async function renderSquadOverview() {
           <td style="text-align:center">${row.m || '–'}</td>
           <td style="text-align:center">${row.w || '–'}</td>
           <td style="text-align:center">${row.m + row.w}</td>
+          <td rowspan="${totalRows}" style="vertical-align:top;padding-top:8px">
+            <button class="btn btn-sm btn-secondary"
+              onclick="openSquadDetails('${team.name}','${squadDataAttr}')">Details</button>
+          </td>
         `;
       } else {
         tr.innerHTML = `
@@ -1089,6 +1096,81 @@ window.printSquadOverview = () => {
   </body></html>`);
   win.document.close();
   win.print();
+};
+
+// ── Vereins-Details Modal ─────────────────────────────────────
+const VEREIN_COLORS = { TSV: '#4a90d9', MTV: '#e8623a', TSG: '#4caf7d' };
+
+window.openSquadDetails = (teamName, encodedSquad) => {
+  const squad = JSON.parse(decodeURIComponent(encodedSquad));
+
+  // Summen pro Verein
+  const byVerein = {};
+  for (const s of squad) {
+    if (!byVerein[s.verein]) byVerein[s.verein] = 0;
+    byVerein[s.verein] += s.count;
+  }
+  const total = Object.values(byVerein).reduce((a, b) => a + b, 0);
+  const vereine = Object.keys(byVerein).sort();
+
+  document.getElementById('squad-details-title').textContent = `${teamName} – Vereinszugehörigkeit`;
+
+  // Text + Balken
+  const textHtml = vereine.map(v => {
+    const count = byVerein[v];
+    const pct = total > 0 ? Math.round(count / total * 100) : 0;
+    const color = VEREIN_COLORS[v] || '#999';
+    return `
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:14px">
+          <span style="font-weight:600;color:${color}">${v}</span>
+          <span>${count} Spieler &nbsp;<strong>${pct}%</strong></span>
+        </div>
+        <div style="background:var(--border);border-radius:4px;height:10px;overflow:hidden">
+          <div style="width:${pct}%;background:${color};height:100%;border-radius:4px;transition:width .3s"></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const body = document.getElementById('squad-details-body');
+  body.innerHTML = `
+    <div style="margin-bottom:20px">${textHtml}</div>
+    <canvas id="squad-pie-canvas" width="220" height="220" style="display:block;margin:0 auto"></canvas>
+  `;
+
+  // Tortendiagramm
+  const canvas = document.getElementById('squad-pie-canvas');
+  const ctx = canvas.getContext('2d');
+  const cx = 110, cy = 110, r = 90;
+  let angle = -Math.PI / 2;
+
+  for (const v of vereine) {
+    const slice = total > 0 ? byVerein[v] / total * 2 * Math.PI : 0;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, angle, angle + slice);
+    ctx.closePath();
+    ctx.fillStyle = VEREIN_COLORS[v] || '#999';
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Prozent-Label im Segment
+    if (slice > 0.25) {
+      const mid = angle + slice / 2;
+      const lx = cx + Math.cos(mid) * r * 0.65;
+      const ly = cy + Math.sin(mid) * r * 0.65;
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${Math.round(byVerein[v] / total * 100)}%`, lx, ly);
+    }
+    angle += slice;
+  }
+
+  document.getElementById('squad-details-modal').classList.remove('hidden');
 };
 
 document.addEventListener('DOMContentLoaded', adminInit);
