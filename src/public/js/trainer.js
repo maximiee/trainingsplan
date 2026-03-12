@@ -15,13 +15,16 @@ async function init() {
 
   document.getElementById('page-title').textContent = `Mein Bereich – ${currentUser.name}`;
 
-  [allTeams, allPitches, allSeasons] = await Promise.all([
+  let allLocations;
+  [allTeams, allPitches, allSeasons, allLocations] = await Promise.all([
     api.get('/api/teams'),
     api.get('/api/pitches'),
-    api.get('/api/seasons')
+    api.get('/api/seasons'),
+    api.get('/api/locations')
   ]);
 
   setupProfileForm();
+  setupLocationForm(allLocations, currentUser.preferred_location_id);
   setupPasswordForm();
   renderFdButtons();
   await renderSessions();
@@ -89,6 +92,27 @@ function setupProfileForm() {
       msg.style.color = 'var(--success)';
       msg.textContent = '✓ Profil gespeichert';
       document.getElementById('page-title').textContent = `Mein Bereich – ${form.querySelector('[name=name]').value}`;
+    } catch (err) {
+      msg.style.color = 'var(--danger)';
+      msg.textContent = err.message;
+    }
+  });
+}
+
+function setupLocationForm(locations, currentLocationId) {
+  const sel = document.getElementById('trainer-location-select');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">– kein Standard –</option>' +
+    locations.map(l => `<option value="${l.id}"${currentLocationId === l.id ? ' selected' : ''}>${l.name}</option>`).join('');
+
+  document.getElementById('btn-save-location')?.addEventListener('click', async () => {
+    const msg = document.getElementById('location-msg');
+    try {
+      const val = sel.value;
+      await api.put('/api/auth/preferences', { preferred_location_id: val ? parseInt(val) : null });
+      msg.style.color = 'var(--success)';
+      msg.textContent = '✓ Gespeichert';
+      setTimeout(() => { msg.textContent = ''; }, 2000);
     } catch (err) {
       msg.style.color = 'var(--danger)';
       msg.textContent = err.message;
