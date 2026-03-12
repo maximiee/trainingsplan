@@ -35,7 +35,23 @@ if (!columns.includes('type')) {
 
 const squadColumns = db.prepare("PRAGMA table_info(team_squad)").all().map(c => c.name);
 if (!squadColumns.includes('verein')) {
-  db.exec("ALTER TABLE team_squad ADD COLUMN verein TEXT NOT NULL DEFAULT 'TSV' CHECK(verein IN ('TSV', 'MTV', 'TSG'))");
+  // Tabelle neu erstellen mit verein-Spalte und erweitertem UNIQUE-Constraint
+  db.exec(`
+    CREATE TABLE team_squad_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+      year INTEGER NOT NULL,
+      gender TEXT NOT NULL CHECK(gender IN ('m', 'w')),
+      count INTEGER NOT NULL DEFAULT 0,
+      verein TEXT NOT NULL DEFAULT 'TSV' CHECK(verein IN ('TSV', 'MTV', 'TSG')),
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(team_id, year, gender, verein)
+    );
+    INSERT INTO team_squad_new (id, team_id, year, gender, count, updated_at)
+      SELECT id, team_id, year, gender, count, updated_at FROM team_squad;
+    DROP TABLE team_squad;
+    ALTER TABLE team_squad_new RENAME TO team_squad;
+  `);
 }
 
 // Grunddaten anlegen, falls Tabellen leer

@@ -92,6 +92,7 @@ CREATE TABLE IF NOT EXISTS team_squad (
   year INTEGER NOT NULL,
   gender TEXT NOT NULL CHECK(gender IN ('m', 'w')),
   count INTEGER NOT NULL DEFAULT 0,
+  verein TEXT NOT NULL DEFAULT 'TSV' CHECK(verein IN ('TSV', 'MTV', 'TSG')),
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(team_id, year, gender)
+  UNIQUE(team_id, year, gender, verein)
 );

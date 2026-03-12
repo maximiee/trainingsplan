@@ -262,7 +262,7 @@ function renderAdminSquadRows() {
   const tbody = document.getElementById('admin-squad-tbody');
   if (!tbody) return;
   if (adminSquadState.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:16px">Noch keine Jahrgänge eingetragen.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:16px">Noch keine Jahrgänge eingetragen.</td></tr>';
   } else {
     tbody.innerHTML = adminSquadState.map((r, i) => `
       <tr>
@@ -274,6 +274,11 @@ function renderAdminSquadRows() {
         </select></td>
         <td><input type="number" class="form-control" style="width:85px" value="${r.year}" min="1990" max="2030"
           oninput="adminSquadState[${i}].year=parseInt(this.value)||0"></td>
+        <td><select class="form-control" onchange="adminSquadState[${i}].verein=this.value">
+          <option value="TSV" ${(r.verein||'TSV')==='TSV'?'selected':''}>TSV</option>
+          <option value="MTV" ${r.verein==='MTV'?'selected':''}>MTV</option>
+          <option value="TSG" ${r.verein==='TSG'?'selected':''}>TSG</option>
+        </select></td>
         <td><button type="button" class="btn btn-sm btn-danger" onclick="removeAdminSquadRow(${i})">✕</button></td>
       </tr>`).join('');
   }
@@ -287,7 +292,7 @@ function updateAdminSquadTotal() {
 }
 
 window.addAdminSquadRow = () => {
-  adminSquadState.push({ year: new Date().getFullYear() - 10, gender: 'm', count: 0 });
+  adminSquadState.push({ year: new Date().getFullYear() - 10, gender: 'm', count: 0, verein: 'TSV' });
   renderAdminSquadRows();
 };
 
