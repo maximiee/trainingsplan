@@ -62,6 +62,26 @@ body {
   flex-shrink: 0;
 }
 
+/* Standort-Filter */
+.location-filter {
+  display: flex;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.location-filter::before {
+  content: 'Standort:';
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-right: 4px;
+}
+
 .cal-week-label {
   font-weight: 700;
   font-size: 15px;

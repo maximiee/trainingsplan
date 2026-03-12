@@ -31,13 +31,15 @@ function totalSlots() { const c = getConfig(); return (c.endHour - c.startHour) 
 function totalHeight() { return SLOT_HEIGHT * totalSlots(); }
 
 // ── Zustand ─────────────────────────────────────────────────
-let currentMonday   = getMondayOfWeek(new Date());
-let currentSeasonId = null;
-let pitches         = [];
-let seasons         = [];
-let userRole        = 'trainer';
-let userTeamIds     = [];
-let viewMode        = 'week'; // 'week' | 'weekend'
+let currentMonday      = getMondayOfWeek(new Date());
+let currentSeasonId    = null;
+let pitches            = [];
+let locations          = [];
+let selectedLocationId = null;
+let seasons            = [];
+let userRole           = 'trainer';
+let userTeamIds        = [];
+let viewMode           = 'week'; // 'week' | 'weekend'
 
 // ── Init ─────────────────────────────────────────────────────
 async function init() {
@@ -51,10 +53,15 @@ async function init() {
   const params = new URLSearchParams(window.location.search);
   if (params.has('week')) currentMonday = parseWeekParam(params.get('week'));
 
-  [pitches, seasons] = await Promise.all([
+  [pitches, seasons, locations] = await Promise.all([
     api.get('/api/pitches'),
-    api.get('/api/seasons')
+    api.get('/api/seasons'),
+    api.get('/api/locations')
   ]);
+
+  // Standard-Standort: erster Standort (wenn mehrere vorhanden)
+  if (locations.length > 0) selectedLocationId = locations[0].id;
+  renderLocationButtons();
 
   populateSeasonSelect();
 
@@ -98,6 +105,23 @@ function populateSeasonSelect() {
 function updateModeButtons() {
   document.getElementById('btn-mode-week')?.classList.toggle('active', viewMode === 'week');
   document.getElementById('btn-mode-weekend')?.classList.toggle('active', viewMode === 'weekend');
+}
+
+function renderLocationButtons() {
+  const bar = document.getElementById('location-filter');
+  if (!bar) return;
+  if (locations.length <= 1) { bar.style.display = 'none'; return; }
+  bar.style.display = '';
+  bar.innerHTML = locations.map(loc =>
+    `<button class="view-toggle-btn${selectedLocationId === loc.id ? ' active' : ''}" data-loc="${loc.id}">${loc.name}</button>`
+  ).join('');
+  bar.querySelectorAll('[data-loc]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedLocationId = parseInt(btn.dataset.loc);
+      renderLocationButtons();
+      renderWeek();
+    });
+  });
 }
 
 function setupControls() {
@@ -185,11 +209,14 @@ function buildCalendarGrid(sessions, matches = []) {
   if (!container) return;
   container.innerHTML = '';
 
-  const cfg        = getConfig();
-  const TSLOTS     = totalSlots();
-  const THEIGHT    = totalHeight();
-  const pitchCount  = pitches.length;
-  const colCount    = cfg.dayIndices.length * pitchCount;
+  const cfg          = getConfig();
+  const TSLOTS       = totalSlots();
+  const THEIGHT      = totalHeight();
+  const visiblePitches = selectedLocationId
+    ? pitches.filter(p => p.location_id === selectedLocationId)
+    : pitches;
+  const pitchCount   = visiblePitches.length;
+  const colCount     = cfg.dayIndices.length * pitchCount;
   const isMobile    = window.innerWidth <= 600;
   const colTemplate = isMobile ? `repeat(${colCount}, 65px)` : `repeat(${colCount}, 1fr)`;
 
@@ -215,7 +242,7 @@ function buildCalendarGrid(sessions, matches = []) {
     const isToday = iso === today;
     const el = document.createElement('div');
     el.className = 'cal-day-label' + (isToday ? ' today' : '');
-    el.style.gridColumn = `span ${pitchCount}`;
+    el.style.gridColumn = `span ${visiblePitches.length}`;
     const dateStr = day.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit'});
     el.innerHTML = `<strong class="day-name-long">${WEEKDAYS_LONG[d]}</strong><strong class="day-name-short">${WEEKDAYS[d]}</strong>&nbsp;<span style="font-weight:400;font-size:11px">${dateStr}</span>`;
     daysHead.appendChild(el);
@@ -238,7 +265,7 @@ function buildCalendarGrid(sessions, matches = []) {
   pitchLabels.style.flex = '1';
 
   for (const d of cfg.dayIndices) {
-    for (const pitch of pitches) {
+    for (const pitch of visiblePitches) {
       const el = document.createElement('div');
       el.className = 'cal-pitch-label';
       const shortPitch = pitch.name.split(/[\s\-–]/)[0];
@@ -285,8 +312,8 @@ function buildCalendarGrid(sessions, matches = []) {
     const iso = toISO(day);
     const daySessions = sessions.filter(s => s.date === iso);
 
-    for (let pi = 0; pi < pitches.length; pi++) {
-      const pitch = pitches[pi];
+    for (let pi = 0; pi < visiblePitches.length; pi++) {
+      const pitch = visiblePitches[pi];
       const col = document.createElement('div');
       col.className = 'cal-pitch-col' + (pi === 0 ? ' day-start' : '');
       col.style.height = `${THEIGHT}px`;

@@ -2,6 +2,7 @@
 let adminUser = null;
 let allTeams = [];
 let allPitches = [];
+let allLocations = [];
 let allSeasons = [];
 let adminSquadState = []; // [{year, gender, count}] für das aktuell bearbeitete Team
 
@@ -25,9 +26,10 @@ async function adminInit() {
 
   setupTabs();
 
-  [allTeams, allPitches, allSeasons] = await Promise.all([
+  [allTeams, allPitches, allLocations, allSeasons] = await Promise.all([
     api.get('/api/teams/all'),
     api.get('/api/pitches'),
+    api.get('/api/locations'),
     api.get('/api/seasons')
   ]);
 
@@ -38,6 +40,7 @@ async function adminInit() {
   await Promise.all([
     loadUsers(),
     renderTeams(),
+    renderLocations(),
     renderPitches(),
     renderSeasons(),
     renderSessions(),
@@ -331,6 +334,53 @@ document.getElementById('team-form')?.addEventListener('submit', async (e) => {
 window.deactivateTeam = async (id) => { await api.post(`/api/teams/${id}/deactivate`); await renderTeams(); };
 window.activateTeam = async (id) => { await api.post(`/api/teams/${id}/activate`); await renderTeams(); };
 
+// --- Standorte ---
+async function renderLocations() {
+  allLocations = await api.get('/api/locations');
+  const tbody = document.getElementById('locations-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  for (const loc of allLocations) {
+    const pitchCount = allPitches.filter(p => p.location_id === loc.id).length;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${loc.name}</strong></td>
+      <td style="color:var(--text-muted)">${pitchCount} Platz${pitchCount !== 1 ? 'ä' : ''}tze</td>
+      <td><button class="btn btn-sm btn-secondary" onclick="openEditLocation(${loc.id})">Bearbeiten</button></td>
+    `;
+    tbody.appendChild(tr);
+  }
+}
+
+window.openNewLocation = () => openLocationModal(null);
+window.openEditLocation = (id) => openLocationModal(allLocations.find(l => l.id === id));
+
+function openLocationModal(location) {
+  const modal = document.getElementById('location-modal');
+  const form = document.getElementById('location-form');
+  document.getElementById('location-modal-title').textContent = location ? 'Standort bearbeiten' : 'Neuer Standort';
+  form.reset();
+  form.dataset.locationId = location ? location.id : '';
+  if (location) form.querySelector('[name=name]').value = location.name;
+  modal.classList.remove('hidden');
+}
+
+document.getElementById('location-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const id = form.dataset.locationId;
+  const data = { name: form.querySelector('[name=name]').value };
+  try {
+    if (id) await api.put(`/api/locations/${id}`, data);
+    else await api.post('/api/locations', data);
+    document.getElementById('location-modal').classList.add('hidden');
+    allLocations = await api.get('/api/locations');
+    await renderLocations();
+  } catch (err) {
+    showAlert(form, err.message);
+  }
+});
+
 // --- Plätze ---
 async function renderPitches() {
   allPitches = await api.get('/api/pitches');
@@ -341,6 +391,7 @@ async function renderPitches() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><strong>${p.name}</strong></td>
+      <td style="color:var(--text-muted)">${p.location_name || '–'}</td>
       <td><span class="pitch-surface-badge ${p.surface === 'Kunstrasen' ? 'kunstrasen' : ''}">${p.surface}</span></td>
       <td><button class="btn btn-sm btn-secondary" onclick="openEditPitch(${p.id})">Bearbeiten</button></td>
     `;
@@ -357,9 +408,14 @@ function openPitchModal(pitch) {
   document.getElementById('pitch-modal-title').textContent = pitch ? 'Platz bearbeiten' : 'Neuer Platz';
   form.reset();
   form.dataset.pitchId = pitch ? pitch.id : '';
+  // Standort-Dropdown befüllen
+  const locSel = document.getElementById('pitch-location-select');
+  locSel.innerHTML = '<option value="">– kein Standort –</option>' +
+    allLocations.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
   if (pitch) {
     form.querySelector('[name=name]').value = pitch.name;
     form.querySelector('[name=surface]').value = pitch.surface;
+    if (pitch.location_id) locSel.value = pitch.location_id;
   }
   modal.classList.remove('hidden');
 }
@@ -368,11 +424,18 @@ document.getElementById('pitch-form')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = e.target;
   const id = form.dataset.pitchId;
-  const data = { name: form.querySelector('[name=name]').value, surface: form.querySelector('[name=surface]').value };
+  const locVal = document.getElementById('pitch-location-select').value;
+  const data = {
+    name: form.querySelector('[name=name]').value,
+    surface: form.querySelector('[name=surface]').value,
+    location_id: locVal ? parseInt(locVal) : null
+  };
   try {
     if (id) await api.put(`/api/pitches/${id}`, data);
     else await api.post('/api/pitches', data);
     document.getElementById('pitch-modal').classList.add('hidden');
+    allPitches = await api.get('/api/pitches');
+    await renderLocations();
     await renderPitches();
   } catch (err) {
     showAlert(form, err.message);

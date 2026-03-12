@@ -56,6 +56,7 @@ app.use('/api/auth/login', loginLimiter);
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/teams', require('./routes/teams'));
+app.use('/api/locations', require('./routes/locations'));
 app.use('/api/pitches', require('./routes/pitches'));
 app.use('/api/seasons', require('./routes/seasons'));
 app.use('/api/sessions', require('./routes/sessions'));

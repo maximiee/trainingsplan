@@ -42,6 +42,8 @@ const squadUniqueHasVerein = squadIndexes.some(idx => {
   return cols.includes('verein');
 });
 if (!squadUniqueHasVerein) {
+  const squadCols = db.prepare("PRAGMA table_info(team_squad)").all().map(c => c.name);
+  const hasVereinCol = squadCols.includes('verein');
   db.exec(`
     CREATE TABLE team_squad_new (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,21 +57,38 @@ if (!squadUniqueHasVerein) {
     );
     INSERT INTO team_squad_new (id, team_id, year, gender, count, verein, updated_at)
       SELECT id, team_id, year, gender, count,
-        CASE WHEN verein IN ('TSV','MTV','TSG') THEN verein ELSE 'TSV' END,
+        ${hasVereinCol ? "CASE WHEN verein IN ('TSV','MTV','TSG') THEN verein ELSE 'TSV' END" : "'TSV'"},
         updated_at FROM team_squad;
     DROP TABLE team_squad;
     ALTER TABLE team_squad_new RENAME TO team_squad;
   `);
 }
 
+// Migration: location_id in pitches
+const pitchCols = db.prepare("PRAGMA table_info(pitches)").all().map(c => c.name);
+if (!pitchCols.includes('location_id')) {
+  db.exec('ALTER TABLE pitches ADD COLUMN location_id INTEGER REFERENCES locations(id)');
+}
+
 // Grunddaten anlegen, falls Tabellen leer
 function seed() {
-  // Plätze
-  const pitchCount = db.prepare('SELECT COUNT(*) as c FROM pitches').get().c;
-  if (pitchCount === 0) {
-    db.prepare("INSERT INTO pitches (name, surface) VALUES (?, ?)").run('A-Platz', 'Rasen');
-    db.prepare("INSERT INTO pitches (name, surface) VALUES (?, ?)").run('B-Platz', 'Kunstrasen');
-    console.log('Plätze angelegt: A-Platz (Rasen), B-Platz (Kunstrasen)');
+  // Standorte & Plätze
+  const locationCount = db.prepare('SELECT COUNT(*) as c FROM locations').get().c;
+  if (locationCount === 0) {
+    const heiligendorf = db.prepare("INSERT INTO locations (name) VALUES (?)").run('Heiligendorf');
+    const hattorf      = db.prepare("INSERT INTO locations (name) VALUES (?)").run('Hattorf');
+    console.log('Standorte angelegt: Heiligendorf, Hattorf');
+
+    const pitchCount = db.prepare('SELECT COUNT(*) as c FROM pitches').get().c;
+    if (pitchCount === 0) {
+      db.prepare("INSERT INTO pitches (name, surface, location_id) VALUES (?, ?, ?)").run('A-Platz', 'Rasen', heiligendorf.lastInsertRowid);
+      db.prepare("INSERT INTO pitches (name, surface, location_id) VALUES (?, ?, ?)").run('B-Platz', 'Kunstrasen', heiligendorf.lastInsertRowid);
+      db.prepare("INSERT INTO pitches (name, surface, location_id) VALUES (?, ?, ?)").run('Rasenplatz', 'Rasen', hattorf.lastInsertRowid);
+      console.log('Plätze angelegt: A-Platz + B-Platz (Heiligendorf), Rasenplatz (Hattorf)');
+    } else {
+      // Bestehende Plätze Heiligendorf zuweisen
+      db.prepare("UPDATE pitches SET location_id = ? WHERE location_id IS NULL").run(heiligendorf.lastInsertRowid);
+    }
   }
 
   // Erster Admin-Account

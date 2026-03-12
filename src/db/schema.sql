@@ -23,10 +23,16 @@ CREATE TABLE IF NOT EXISTS user_teams (
   PRIMARY KEY (user_id, team_id)
 );
 
+CREATE TABLE IF NOT EXISTS locations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS pitches (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
-  surface TEXT NOT NULL DEFAULT 'Rasen'
+  surface TEXT NOT NULL DEFAULT 'Rasen',
+  location_id INTEGER REFERENCES locations(id)
 );
 
 CREATE TABLE IF NOT EXISTS seasons (
