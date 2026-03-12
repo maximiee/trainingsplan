@@ -215,6 +215,17 @@ function buildCalendarGrid(sessions, matches = []) {
   const visiblePitches = selectedLocationId
     ? pitches.filter(p => p.location_id === selectedLocationId)
     : pitches;
+
+  if (visiblePitches.length === 0) {
+    const locName = locations.find(l => l.id === selectedLocationId)?.name || 'diesem Standort';
+    container.innerHTML = `
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-muted);gap:16px">
+        <span>Keine Plätze für <strong>${locName}</strong> angelegt.</span>
+        <a href="/admin.html#pitches" class="btn btn-primary">Platz anlegen</a>
+      </div>`;
+    return;
+  }
+
   const pitchCount   = visiblePitches.length;
   const colCount     = cfg.dayIndices.length * pitchCount;
   const isMobile    = window.innerWidth <= 600;
