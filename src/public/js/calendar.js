@@ -225,7 +225,9 @@ function buildCalendarGrid(sessions, matches = []) {
     container.innerHTML = `
       <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-muted);gap:16px">
         <span>Keine Plätze für <strong>${locName}</strong> angelegt.</span>
-        <a href="/admin.html#pitches" class="btn btn-primary">Platz anlegen</a>
+        ${userRole === 'admin'
+          ? `<a href="/admin.html#pitches" class="btn btn-primary">Platz anlegen</a>`
+          : `<span style="font-size:13px">Bitte einen Admin bitten, Plätze anzulegen.</span>`}
       </div>`;
     return;
   }
