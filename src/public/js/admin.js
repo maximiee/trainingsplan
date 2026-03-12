@@ -1069,6 +1069,14 @@ async function renderSquadOverview() {
   renderProjection();
 
   const teams = await api.get('/api/teams/overview');
+  const teamOrder = (name) => {
+    const n = name.toLowerCase();
+    if (n.includes('jugend')) return 2;
+    if (n.includes('ü') || n.startsWith('ue')) return 1;
+    return 0;
+  };
+  teams.sort((a, b) => teamOrder(a.name) - teamOrder(b.name) || a.name.localeCompare(b.name, 'de'));
+
   tbody.innerHTML = '';
   tfoot.innerHTML = '';
 
