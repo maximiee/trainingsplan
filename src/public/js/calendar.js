@@ -59,8 +59,12 @@ async function init() {
     api.get('/api/locations')
   ]);
 
-  // Standard-Standort: erster Standort (wenn mehrere vorhanden)
-  if (locations.length > 0) selectedLocationId = locations[0].id;
+  // Standard-Standort: User-Präferenz, sonst erster Standort
+  if (user.preferred_location_id && locations.some(l => l.id === user.preferred_location_id)) {
+    selectedLocationId = user.preferred_location_id;
+  } else if (locations.length > 0) {
+    selectedLocationId = locations[0].id;
+  }
   renderLocationButtons();
 
   populateSeasonSelect();
@@ -884,9 +888,31 @@ async function openProfileModal() {
   const modal = document.getElementById('profile-modal');
   if (!modal) return;
 
+  const me = await api.get('/api/auth/me');
+
+  // Standort-Präferenz
+  const locSel = document.getElementById('profile-location-select');
+  if (locSel) {
+    locSel.innerHTML = '<option value="">– kein Standard –</option>' +
+      locations.map(l => `<option value="${l.id}"${me.preferred_location_id === l.id ? ' selected' : ''}>${l.name}</option>`).join('');
+    document.getElementById('btn-save-location')?.addEventListener('click', async () => {
+      const msg = document.getElementById('profile-location-msg');
+      const val = locSel.value;
+      await api.put('/api/auth/preferences', { preferred_location_id: val ? parseInt(val) : null });
+      if (val) {
+        selectedLocationId = parseInt(val);
+        renderLocationButtons();
+        renderWeek();
+      }
+      msg.textContent = '✓ Gespeichert';
+      msg.style.color = 'var(--success)';
+      setTimeout(() => { msg.textContent = ''; }, 2000);
+    }, { once: true });
+  }
+
   // Teams nur anzeigen
   const teamBox = document.getElementById('profile-teams-checks');
-  const myTeams = (await api.get('/api/auth/me')).teams || [];
+  const myTeams = me.teams || [];
   teamBox.innerHTML = myTeams.length
     ? myTeams.map(t => `
         <span style="display:flex;align-items:center;gap:5px;font-size:13px;padding:3px 8px;border:1px solid #dde1e7;border-radius:6px;background:#f8f9fa">
@@ -895,6 +921,7 @@ async function openProfileModal() {
     : '<span style="color:var(--text-muted);font-size:13px">Keine Mannschaft zugeordnet</span>';
   document.getElementById('btn-save-teams').style.display = 'none';
   document.getElementById('profile-teams-msg').textContent = 'Mannschaften können nur vom Admin geändert werden.';
+
 
   // Passwort-Formular
   const pwForm = document.getElementById('profile-pw-form');

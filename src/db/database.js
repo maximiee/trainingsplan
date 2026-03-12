@@ -70,6 +70,12 @@ if (!pitchCols.includes('location_id')) {
   db.exec('ALTER TABLE pitches ADD COLUMN location_id INTEGER REFERENCES locations(id)');
 }
 
+// Migration: preferred_location_id in users
+const userCols = db.prepare("PRAGMA table_info(users)").all().map(c => c.name);
+if (!userCols.includes('preferred_location_id')) {
+  db.exec('ALTER TABLE users ADD COLUMN preferred_location_id INTEGER REFERENCES locations(id)');
+}
+
 // Grunddaten anlegen, falls Tabellen leer
 function seed() {
   // Standorte & Plätze

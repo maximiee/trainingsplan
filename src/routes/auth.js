@@ -84,18 +84,27 @@ router.post('/logout', (req, res) => {
 
 // GET /api/auth/me
 router.get('/me', requireAuth, (req, res) => {
-  const user = db.prepare('SELECT email FROM users WHERE id = ?').get(req.session.userId);
+  const user = db.prepare('SELECT email, preferred_location_id FROM users WHERE id = ?').get(req.session.userId);
   const teams = req.session.role === 'admin' ? [] : db.prepare(`
     SELECT t.id, t.name, t.color, t.fussball_de_id FROM user_teams ut
     JOIN teams t ON t.id = ut.team_id WHERE ut.user_id = ?
   `).all(req.session.userId);
   res.json({
-    id:    req.session.userId,
-    name:  req.session.userName,
-    email: user?.email || '',
-    role:  req.session.role,
-    teams: req.session.role === 'admin' ? (req.session.teams || []) : teams
+    id:                   req.session.userId,
+    name:                 req.session.userName,
+    email:                user?.email || '',
+    role:                 req.session.role,
+    teams:                req.session.role === 'admin' ? (req.session.teams || []) : teams,
+    preferred_location_id: user?.preferred_location_id || null
   });
+});
+
+// PUT /api/auth/preferences
+router.put('/preferences', requireAuth, (req, res) => {
+  const { preferred_location_id } = req.body;
+  db.prepare('UPDATE users SET preferred_location_id = ? WHERE id = ?')
+    .run(preferred_location_id ? parseInt(preferred_location_id) : null, req.session.userId);
+  res.json({ ok: true });
 });
 
 // POST /api/auth/change-password
