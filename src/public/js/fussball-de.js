@@ -24,8 +24,8 @@ let _fdImportIdx = null;
       <select id="fd-import-pitch" class="form-control"></select>
     </div>
     <div class="modal-footer" style="margin-top:16px">
-      <button class="btn btn-secondary" onclick="closeFdImportModal()">Abbrechen</button>
-      <button class="btn btn-primary" onclick="confirmFdImport()">Eintragen</button>
+      <button type="button" class="btn btn-secondary" onclick="closeFdImportModal()">Abbrechen</button>
+      <button type="button" class="btn btn-primary" onclick="confirmFdImport()">Eintragen</button>
     </div>
   </div>
 </div>`;

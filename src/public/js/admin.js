@@ -789,7 +789,7 @@ function setupMatchForm() {
   }
 
   const pitchSel = document.getElementById('match-pitch-select');
-  if (pitchSel) pitchSel.innerHTML = allPitches.map(p => `<option value="${p.id}">${p.location_name ? p.location_name + ' – ' : ''}${p.name}</option>`).join('');
+  if (pitchSel) pitchSel.innerHTML = '<option value="">– kein Platz –</option>' + allPitches.map(p => `<option value="${p.id}">${p.location_name ? p.location_name + ' – ' : ''}${p.name}</option>`).join('');
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();

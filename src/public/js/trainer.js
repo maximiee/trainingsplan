@@ -415,7 +415,7 @@ function buildMatchForm() {
   teamSel.innerHTML = myTeams.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
 
   const pitchSel = document.getElementById('match-pitch-select');
-  pitchSel.innerHTML = allPitches.map(p => `<option value="${p.id}">${p.location_name ? p.location_name + ' – ' : ''}${p.name}</option>`).join('');
+  pitchSel.innerHTML = '<option value="">– kein Platz –</option>' + allPitches.map(p => `<option value="${p.id}">${p.location_name ? p.location_name + ' – ' : ''}${p.name}</option>`).join('');
 }
 
 window.openNewMatchModal = () => {
