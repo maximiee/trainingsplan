@@ -129,7 +129,7 @@ function setupControls() {
   });
   document.getElementById('btn-new-session')?.addEventListener('click', () => openCalSessionModal());
   document.getElementById('cal-session-cancel')?.addEventListener('click', () => {
-    document.getElementById('cal-session-modal').classList.add('hidden');
+    closeEditSessionModal();
   });
   document.getElementById('btn-profile')?.addEventListener('click', openProfileModal);
   document.getElementById('profile-modal-close')?.addEventListener('click', () => {
@@ -528,6 +528,7 @@ function showSessionPopup(session, event) {
       ${session.is_cancelled
         ? `<button class="btn btn-sm btn-success" data-uncancel="${session.id}">Wieder ansetzen</button>`
         : `<button class="btn btn-sm btn-warning" data-cancel="${session.id}">Absagen</button>`}
+      <button class="btn btn-sm btn-secondary" data-edit="${session.id}">Bearbeiten</button>
     </div>
     ` : ''}
   `;
@@ -549,6 +550,10 @@ function showSessionPopup(session, event) {
     await api.put(`/api/sessions/${session.id}`, { is_cancelled: 0 });
     popup.remove();
     renderWeek();
+  });
+  popup.querySelector('[data-edit]')?.addEventListener('click', () => {
+    popup.remove();
+    openEditSessionModal(session);
   });
 
   document.body.appendChild(popup);
@@ -749,6 +754,81 @@ function openCalSessionModal() {
   };
 
   modal.classList.remove('hidden');
+}
+
+// ── Einheit bearbeiten Modal ──────────────────────────────────
+async function openEditSessionModal(session) {
+  const modal = document.getElementById('cal-session-modal');
+  const form  = document.getElementById('cal-session-form');
+  if (!modal || !form) return;
+
+  // Modus-Auswahl und periodische Felder ausblenden – nur Einzeltermin-Felder
+  document.getElementById('cal-session-modal-title').textContent = 'Einheit bearbeiten';
+  document.getElementById('cal-mode-btn-recurring').closest('.form-group').style.display = 'none';
+  document.getElementById('cal-recurring-fields').classList.add('hidden');
+  document.getElementById('cal-single-fields').classList.remove('hidden');
+
+  // Platz-Select befüllen
+  const pitchSel = form.querySelector('[name=pitch_id]');
+  pitchSel.innerHTML = pitches.map(p => `<option value="${p.id}" ${p.id === session.pitch_id ? 'selected' : ''}>${p.name}</option>`).join('');
+
+  // Zeitslots befüllen und vorbelegen
+  ['start_time', 'end_time'].forEach(field => {
+    const sel = form.querySelector(`[name=${field}]`);
+    sel.innerHTML = '';
+    for (let h = 6; h <= 23; h++) {
+      for (let m = 0; m < 60; m += 30) {
+        const val = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+        sel.innerHTML += `<option value="${val}">${val}</option>`;
+      }
+    }
+    sel.value = session[field];
+  });
+
+  // Datum vorbelegen
+  form.querySelector('[name=single_date]').value = session.date;
+
+  // Teams-Checkboxen
+  const teamBox = document.getElementById('cal-teams-checks');
+  const sessionTeamIds = (session.teams || []).map(t => t.id);
+  const allTeams = await api.get('/api/teams');
+  teamBox.innerHTML = allTeams.filter(t => t.is_active).map(t => `
+    <label class="checkbox-item">
+      <input type="checkbox" name="teamIds" value="${t.id}" ${sessionTeamIds.includes(t.id) ? 'checked' : ''}>
+      <span class="color-dot" style="background:${t.color}"></span>${t.name}
+    </label>`).join('');
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const teamIds = [...form.querySelectorAll('[name=teamIds]:checked')].map(el => parseInt(el.value));
+    const date = form.querySelector('[name=single_date]').value;
+    if (!date) { alert('Bitte ein Datum auswählen.'); return; }
+
+    try {
+      await api.put(`/api/sessions/${session.id}`, {
+        pitch_id:   parseInt(form.querySelector('[name=pitch_id]').value),
+        date,
+        start_time: form.querySelector('[name=start_time]').value,
+        end_time:   form.querySelector('[name=end_time]').value,
+        teamIds
+      });
+      closeEditSessionModal();
+      renderWeek();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  modal.classList.remove('hidden');
+}
+
+function closeEditSessionModal() {
+  const modal = document.getElementById('cal-session-modal');
+  modal.classList.add('hidden');
+  // Modus-Auswahl wiederherstellen
+  document.getElementById('cal-session-modal-title').textContent = 'Neue Einheit';
+  document.getElementById('cal-mode-btn-recurring').closest('.form-group').style.display = '';
+  calSetMode('recurring');
 }
 
 // ── Profil Modal ──────────────────────────────────────────────
