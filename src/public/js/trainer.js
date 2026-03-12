@@ -211,7 +211,7 @@ function buildSessionForm() {
   const form = document.getElementById('session-form');
 
   const pitchSel = form.querySelector('[name=pitch_id]');
-  pitchSel.innerHTML = allPitches.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  pitchSel.innerHTML = allPitches.map(p => `<option value="${p.id}">${p.location_name ? p.location_name + ' – ' : ''}${p.name}</option>`).join('');
 
   ['start_time', 'end_time'].forEach(field => {
     const sel = form.querySelector(`[name=${field}]`);
@@ -415,7 +415,7 @@ function buildMatchForm() {
   teamSel.innerHTML = myTeams.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
 
   const pitchSel = document.getElementById('match-pitch-select');
-  pitchSel.innerHTML = allPitches.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  pitchSel.innerHTML = allPitches.map(p => `<option value="${p.id}">${p.location_name ? p.location_name + ' – ' : ''}${p.name}</option>`).join('');
 }
 
 window.openNewMatchModal = () => {

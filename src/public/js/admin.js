@@ -598,7 +598,7 @@ function setupSessionForm() {
   const pitchSel = form.querySelector('[name=pitch_id]');
   pitchSel.innerHTML = '';
   for (const p of allPitches) {
-    pitchSel.innerHTML += `<option value="${p.id}">${p.name} (${p.surface})</option>`;
+    pitchSel.innerHTML += `<option value="${p.id}">${p.location_name ? p.location_name + ' – ' : ''}${p.name} (${p.surface})</option>`;
   }
 
   // Saison-Dropdown
@@ -763,7 +763,7 @@ function setupMatchForm() {
   }
 
   const pitchSel = document.getElementById('match-pitch-select');
-  if (pitchSel) pitchSel.innerHTML = allPitches.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  if (pitchSel) pitchSel.innerHTML = allPitches.map(p => `<option value="${p.id}">${p.location_name ? p.location_name + ' – ' : ''}${p.name}</option>`).join('');
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();

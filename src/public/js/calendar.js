@@ -714,7 +714,7 @@ function openCalSessionModal() {
 
   // Platz-Select befüllen
   const pitchSel = form.querySelector('[name=pitch_id]');
-  pitchSel.innerHTML = pitches.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  pitchSel.innerHTML = pitches.map(p => `<option value="${p.id}">${p.location_name ? p.location_name + ' – ' : ''}${p.name}</option>`).join('');
   // Zeitslots befüllen
   ['start_time', 'end_time'].forEach(field => {
     const sel = form.querySelector(`[name=${field}]`);
@@ -814,7 +814,7 @@ async function openEditSessionModal(session) {
 
   // Platz-Select befüllen
   const pitchSel = form.querySelector('[name=pitch_id]');
-  pitchSel.innerHTML = pitches.map(p => `<option value="${p.id}" ${p.id === session.pitch_id ? 'selected' : ''}>${p.name}</option>`).join('');
+  pitchSel.innerHTML = pitches.map(p => `<option value="${p.id}" ${p.id === session.pitch_id ? 'selected' : ''}>${p.location_name ? p.location_name + ' – ' : ''}${p.name}</option>`).join('');
 
   // Zeitslots befüllen und vorbelegen
   ['start_time', 'end_time'].forEach(field => {
