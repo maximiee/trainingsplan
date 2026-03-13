@@ -143,4 +143,25 @@ async function notifyTrainingCancelled(sessionId) {
   }
 }
 
-module.exports = { notifyMatchCreated, notifyTrainingCancelled, notifyTrainingReactivated };
+// Neue Registrierung → alle Admins informieren
+async function notifyAdminNewRegistration(newUser) {
+  const admins = db.prepare("SELECT email, name FROM users WHERE role = 'admin' AND is_active = 1").all();
+  if (!admins.length) return;
+
+  for (const admin of admins) {
+    await sendMail(
+      admin.email,
+      `Neue Registrierung: ${newUser.name}`,
+      `<p>Hallo ${admin.name},</p>
+       <p>ein neuer Trainer hat sich registriert und wartet auf Freischaltung:</p>
+       <ul>
+         <li><b>Name:</b> ${newUser.name}</li>
+         <li><b>E-Mail:</b> ${newUser.email}</li>
+       </ul>
+       <p>Bitte aktiviere den Account im Admin-Bereich.</p>
+       <p>Viele Grüße<br>Trainingsplan</p>`
+    );
+  }
+}
+
+module.exports = { notifyMatchCreated, notifyTrainingCancelled, notifyTrainingReactivated, notifyAdminNewRegistration };

@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const db = require('../db/database');
 const { requireAuth } = require('../middleware/auth');
+const { notifyAdminNewRegistration } = require('../services/mailer');
 const router = express.Router();
 
 // POST /api/auth/register
@@ -39,6 +40,8 @@ router.post('/register', (req, res) => {
   req.session.userName = name;
   req.session.role     = 'trainer';
   req.session.teams    = teams;
+
+  notifyAdminNewRegistration({ name, email }).catch(() => {});
 
   res.status(201).json({ ok: true });
 });
