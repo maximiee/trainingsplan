@@ -155,9 +155,36 @@
 
     .quick-ref-table { width: 100%; }
 
+    .btn-pdf {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 16px;
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 2px solid rgba(255,255,255,0.6);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-pdf:hover { background: rgba(255,255,255,0.35); border-color: white; }
+
     @media (max-width: 600px) {
       .help-section { padding: 18px 16px; }
       .help-hero    { padding: 22px 18px; }
+    }
+
+    @media print {
+      .navbar, .btn-pdf, .help-toc { display: none !important; }
+      body { background: white; }
+      .page { max-width: 100%; padding: 0; }
+      .help-hero { background: #1a4a7a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .help-section { break-inside: avoid; border: 1px solid #ddd; box-shadow: none; }
+      .help-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
   </style>
 </head>
@@ -186,6 +213,7 @@
   <div class="help-hero">
     <h1>📖 Hilfe &amp; Bedienungsanleitung</h1>
     <p>Alles, was du als Trainer über die Trainingszeitenverwaltung wissen musst.</p>
+    <button class="btn-pdf" onclick="window.print()">⬇ Als PDF herunterladen</button>
   </div>
 
   <!-- Inhaltsverzeichnis -->
